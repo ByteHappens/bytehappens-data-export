@@ -18,11 +18,16 @@ class KeepAliveTask extends BaseTask {
     logger: Logger
   ) {
     super(taskName, logger);
+    
     this._targetHost = targetHost;
     this._targetPort = targetPort;
   }
 
   protected ExecuteInternal(): void {
+    this._logger.info(
+      `Attempting to ping ${this._targetHost} on port ${this._targetPort}`
+    );
+
     try {
       http.get(<http.RequestOptions>{
         host: this._targetHost,

@@ -18,6 +18,8 @@ export abstract class ExpressApp extends BaseApp {
   }
 
   protected StartInternal(): void {
+    this._logger.info(`Listening on port ${this._port}`);
+
     this._app.listen(this._port);
   }
 
