@@ -5,16 +5,16 @@ import { CreateLoggerAsync } from "../../../common/logging/winston";
 import { ExpressApp } from "../../../common/hosting/express";
 import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
 
-class PingListenerApp extends ExpressApp {
+class DataExportApp extends ExpressApp {
   constructor(port: number, appName: string, logger: Logger) {
     super(port, appName, logger);
   }
 
   protected ProcessRequest(request, response): void {
-    this._logger.verbose("Ping received");
+    this._logger.verbose("Sending reply");
 
-    response.status(204);
-    response.send();
+    response.status(200);
+    response.send("I'm alive !");
   }
 }
 
@@ -33,7 +33,7 @@ async function GetAppAsync(): Promise<IStartableApp> {
     ? process.env.MONGODB_LOGS_PASSWORD
     : undefined;
   let mongoDbCollection: string = useMongoDb
-    ? process.env.PINGLISTENER_APP_NAME
+    ? process.env.DATAEXPORT_APP_NAME
     : undefined;
 
   let logger: Logger = await CreateLoggerAsync(
@@ -45,10 +45,10 @@ async function GetAppAsync(): Promise<IStartableApp> {
     mongoDbCollection
   );
 
-  let appName: string = process.env.PINGLISTENER_APP_NAME;
-  let port: number = parseInt(process.env.PINGLISTENER_PORT);
+  let appName: string = process.env.DATAEXPORT_APP_NAME;
+  let port: number = parseInt(process.env.DATAEXPORT_PORT);
 
-  return new PingListenerApp(port, appName, logger);
+  return new DataExportApp(port, appName, logger);
 }
 
 GetAppAsync().then(app => app.Start());

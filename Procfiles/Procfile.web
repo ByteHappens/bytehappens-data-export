@@ -1,1 +1,2 @@
 ping-listener: node dist/apps/web/ping-listener
+data-export: node dist/apps/web/data-export
