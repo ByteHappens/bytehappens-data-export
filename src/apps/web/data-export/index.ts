@@ -46,7 +46,7 @@ async function GetAppAsync(): Promise<IStartableApp> {
   );
 
   let appName: string = process.env.DATAEXPORT_APP_NAME;
-  let port: number = parseInt(process.env.DATAEXPORT_PORT);
+  let port: number = parseInt(process.env.PORT || process.env.DATAEXPORT_PORT);
 
   return new DataExportApp(port, appName, logger);
 }
