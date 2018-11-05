@@ -22,7 +22,6 @@
     "express": "^4.16.3",
     "foreman": "^3.0.1",
     "mongodb": "^3.1.6",
-    "typescript": "^3.1.1",
     "winston": "^3.1.0",
     "winston-mongodb": "^4.0.3"
   },
@@ -35,6 +34,7 @@
     "grunt": "^1.0.3",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-ts": "^6.0.0-beta.21",
-    "nodemon": "^1.18.4"
+    "nodemon": "^1.18.4",
+    "typescript": "^3.1.6"
   }
 }
