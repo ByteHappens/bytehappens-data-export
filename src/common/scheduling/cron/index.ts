@@ -19,7 +19,6 @@ export class CronApp extends BaseApp {
 
   protected StartInternal(): void {
     this._logger.info(`Running task with schedule ${this._cronTime}`);
-
     this._job.start();
   }
 }

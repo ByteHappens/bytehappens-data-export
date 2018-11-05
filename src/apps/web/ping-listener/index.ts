@@ -6,8 +6,8 @@ import { ExpressApp } from "../../../common/hosting/express";
 import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
 
 class PingListenerApp extends ExpressApp {
-  constructor(port: number, appName: string, logger: Logger) {
-    super(port, appName, logger);
+  constructor(host: string, port: number, appName: string, logger: Logger) {
+    super(host, port, appName, logger);
   }
 
   protected ProcessRequest(request, response): void {
@@ -46,9 +46,10 @@ async function GetAppAsync(): Promise<IStartableApp> {
   );
 
   let appName: string = process.env.PINGLISTENER_APP_NAME;
+  let host: string = process.env.PINGLISTENER_HOST;
   let port: number = parseInt(process.env.PINGLISTENER_PORT);
 
-  return new PingListenerApp(port, appName, logger);
+  return new PingListenerApp(host, port, appName, logger);
 }
 
 GetAppAsync().then(app => app.Start());

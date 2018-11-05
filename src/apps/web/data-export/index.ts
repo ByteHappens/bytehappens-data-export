@@ -6,8 +6,8 @@ import { ExpressApp } from "../../../common/hosting/express";
 import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
 
 class DataExportApp extends ExpressApp {
-  constructor(port: number, appName: string, logger: Logger) {
-    super(port, appName, logger);
+  constructor(host: string, port: number, appName: string, logger: Logger) {
+    super(host, port, appName, logger);
   }
 
   protected ProcessRequest(request, response): void {
@@ -46,9 +46,10 @@ async function GetAppAsync(): Promise<IStartableApp> {
   );
 
   let appName: string = process.env.DATAEXPORT_APP_NAME;
-  let port: number = parseInt(process.env.PORT || process.env.DATAEXPORT_PORT);
+  let host: string = process.env.DATAEXPORT_HOST || "0.0.0.0";
+  let port: number = parseInt(process.env.DATAEXPORT_PORT || process.env.PORT);
 
-  return new DataExportApp(port, appName, logger);
+  return new DataExportApp(host, port, appName, logger);
 }
 
 GetAppAsync().then(app => app.Start());
