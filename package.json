@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Export data",
   "author": "Ewan \"ScottChak\" BURNS",
+  "engines": {
+    "node": "8.12.0"
+  },
   "scripts": {
     "start": "nf start",
     "build": "grunt build",
