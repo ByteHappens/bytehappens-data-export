@@ -1,0 +1,2 @@
+web: nf start --procfile ./environment/dev/Procfiles/Procfile.web
+worker: nf start --procfile ./environment/dev/Procfiles/Procfile.worker

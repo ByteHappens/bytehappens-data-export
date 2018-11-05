@@ -59,3 +59,12 @@ typings/
 
 # next.js build output
 .next
+
+# Dev Env files to include
+!environment/dev/*
+
+# Generated files
+.tscache/**/*
+
+dist/**/*.js
+dist/**/*.js.map
