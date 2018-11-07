@@ -52,15 +52,17 @@ async function SetupAsync(): Promise<void> {
 
   logger.verbose("Running setup");
 
-  let useMongoDb: boolean = process.env.LOGGING_USEMONGODB === "true";
+  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
   if (useMongoDb) {
     try {
-      let mongoDbHost: string = process.env.MONGODB_HOST;
-      let mongoDbPort: number = parseInt(process.env.MONGODB_PORT);
-      let mongoDbAdminUsername: string = process.env.MONGODB_ADMIN_USERNAME;
-      let mongoDbAdminPassword: string = process.env.MONGODB_ADMIN_PASSWORD;
-      let mongoDbUsername: string = process.env.MONGODB_LOGS_USERNAME;
-      let mongoDbPassword: string = process.env.MONGODB_LOGS_PASSWORD;
+      let mongoDbHost: string = process.env.LOGGING_MONGODB_HOST;
+      let mongoDbPort: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+      let mongoDbAdminUsername: string =
+        process.env.LOGGING_MONGODB_ADMIN_USERNAME;
+      let mongoDbAdminPassword: string =
+        process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
+      let mongoDbUsername: string = process.env.LOGGING_MONGODB_USERNAME;
+      let mongoDbPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
 
       await CreateMongoDbLoggingUserAsync(
         mongoDbHost,

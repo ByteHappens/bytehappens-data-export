@@ -21,16 +21,16 @@ class PingListenerApp extends ExpressApp {
 async function GetAppAsync(): Promise<IStartableApp> {
   await InitialiseEnvironmentAsync();
 
-  let useMongoDb: boolean = process.env.LOGGING_USEMONGODB === "true";
+  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
   let mongoDbHost: string = useMongoDb ? process.env.MONGODB_HOST : undefined;
   let mongoDbPort: number = useMongoDb
-    ? parseInt(process.env.MONGODB_PORT)
+    ? parseInt(process.env.LOGGING_MONGODB_PORT)
     : undefined;
   let mongoDbUsername: string = useMongoDb
-    ? process.env.MONGODB_LOGS_USERNAME
+    ? process.env.LOGGING_MONGODB_USERNAME
     : undefined;
   let mongoDbPassword: string = useMongoDb
-    ? process.env.MONGODB_LOGS_PASSWORD
+    ? process.env.LOGGING_MONGODB_PASSWORD
     : undefined;
   let mongoDbCollection: string = useMongoDb
     ? process.env.PINGLISTENER_APP_NAME

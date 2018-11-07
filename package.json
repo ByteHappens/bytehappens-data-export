@@ -11,7 +11,7 @@
     "start": "nf start",
     "build": "grunt build",
     "watch": "grunt watch",
-    "setup": "node -r dotenv/config dist/setup dotenv_config_path=env/dev/.env",
+    "setup": "node -r dotenv/config dist/setup dotenv_config_path=environment/dev/.env",
     "debug": "nf start --procfile ./environment/dev/Procfile",
     "dev": "npm run build && npm run setup && concurrently \"npm run debug\" \"npm run watch\"",
     "tsc": "tsc"
