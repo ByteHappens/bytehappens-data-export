@@ -8,7 +8,7 @@ export abstract class BaseApp implements IStartableApp {
   protected readonly _appName: string;
   protected readonly _logger: Logger;
 
-  constructor(appName: string, logger: Logger) {
+  public constructor(appName: string, logger: Logger) {
     this._appName = appName;
     this._logger = logger;
   }

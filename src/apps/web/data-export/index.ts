@@ -1,18 +1,20 @@
 import { Logger } from "winston";
+import * as express from "express";
 
 import { IStartableApp } from "../../../common/app";
 import { CreateLoggerAsync } from "../../../common/logging/winston";
-import { ExpressApp } from "../../../common/hosting/express";
+import {
+  ExpressApp,
+  IExpressRoute,
+  BaseExpressRoute
+} from "../../../common/hosting/express";
 import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
 
-class DataExportApp extends ExpressApp {
-  constructor(host: string, port: number, appName: string, logger: Logger) {
-    super(host, port, appName, logger);
-  }
-
-  protected ProcessRequest(request, response): void {
-    this._logger.verbose("Sending reply");
-
+class DataExportRoute extends BaseExpressRoute {
+  protected ProcessRequestInternal(
+    request: express.Request,
+    response: express.Response
+  ): void {
     response.status(200);
     response.send("I'm alive !");
   }
@@ -47,9 +49,12 @@ async function GetAppAsync(): Promise<IStartableApp> {
 
   let appName: string = process.env.DATAEXPORT_APP_NAME;
   let host: string = process.env.DATAEXPORT_HOST || "0.0.0.0";
+  let path: string = process.env.DATAEXPORT_PATH || "/";
   let port: number = parseInt(process.env.DATAEXPORT_PORT || process.env.PORT);
 
-  return new DataExportApp(host, port, appName, logger);
+  let routes: IExpressRoute[] = [new DataExportRoute(path, logger)];
+
+  return new ExpressApp(host, port, routes, appName, logger);
 }
 
 GetAppAsync().then(app => app.Start());

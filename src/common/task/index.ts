@@ -8,7 +8,7 @@ export abstract class BaseTask implements ITask {
   protected readonly _taskName: string;
   protected readonly _logger: Logger;
 
-  constructor(taskName: string, logger: Logger) {
+  public constructor(taskName: string, logger: Logger) {
     this._taskName = taskName;
     this._logger = logger;
   }

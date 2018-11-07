@@ -9,7 +9,12 @@ export class CronApp extends BaseApp {
   private readonly _task: ITask;
   private readonly _job: CronJob;
 
-  constructor(task: ITask, cronTime: string, appName: string, logger: Logger) {
+  public constructor(
+    task: ITask,
+    cronTime: string,
+    appName: string,
+    logger: Logger
+  ) {
     super(appName, logger);
 
     this._cronTime = cronTime;

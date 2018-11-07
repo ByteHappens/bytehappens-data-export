@@ -9,10 +9,12 @@ import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
 
 class KeepAliveTask extends BaseTask {
   private readonly _targetHost: string;
+  private readonly _targetPath: string;
   private readonly _targetPort: number;
 
-  constructor(
+  public constructor(
     targetHost: string,
+    targetPath: string,
     targetPort: number,
     taskName: string,
     logger: Logger
@@ -20,17 +22,21 @@ class KeepAliveTask extends BaseTask {
     super(taskName, logger);
 
     this._targetHost = targetHost;
+    this._targetPath = targetPath;
     this._targetPort = targetPort;
   }
 
   protected ExecuteInternal(): void {
     this._logger.info(
-      `Attempting to ping ${this._targetHost} on port ${this._targetPort}`
+      `Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${
+        this._targetPort
+      }`
     );
 
     try {
       http.get(<http.RequestOptions>{
         host: this._targetHost,
+        path: this._targetPath,
         port: this._targetPort
       });
     } catch (err) {
@@ -68,10 +74,17 @@ async function GetAppAsync(): Promise<IStartableApp> {
 
   let appName: string = process.env.KEEPALIVE_APP_NAME;
   let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
+  let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
   let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT);
   let cronTime: string = process.env.KEEPALIVE_CRONTIME;
 
-  let task = new KeepAliveTask(targetHost, targetPort, appName, logger);
+  let task = new KeepAliveTask(
+    targetHost,
+    targetPath,
+    targetPort,
+    appName,
+    logger
+  );
   return new CronApp(task, cronTime, appName, logger);
 }
 
