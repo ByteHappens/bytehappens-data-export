@@ -75,7 +75,7 @@ async function GetAppAsync(): Promise<IStartableApp> {
   let appName: string = process.env.KEEPALIVE_APP_NAME;
   let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
   let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
-  let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT);
+  let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT || "80");
   let cronTime: string = process.env.KEEPALIVE_CRONTIME;
 
   let task = new KeepAliveTask(

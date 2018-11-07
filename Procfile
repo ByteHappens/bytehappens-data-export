@@ -1,2 +1,2 @@
-web: nf start --procfile ./Procfiles/Procfile.web
+web: node dist/apps/web
 worker: nf start --procfile ./Procfiles/Procfile.worker

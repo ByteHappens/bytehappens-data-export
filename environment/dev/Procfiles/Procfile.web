@@ -1,2 +1,0 @@
-ping-listener: nodemon --exec "node -r dotenv/config dist/apps/web/ping-listener dotenv_config_path=environment/dev/.env"
-data-export: nodemon --exec "node -r dotenv/config dist/apps/web/data-export dotenv_config_path=environment/dev/.env"
