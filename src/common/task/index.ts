@@ -16,7 +16,7 @@ export abstract class BaseTask implements ITask {
   protected abstract ExecuteInternal(): void;
 
   public Execute(): void {
-    this._logger.info(`Executing ${this._taskName} Task`);
+    this._logger.verbose(`Executing ${this._taskName} Task`);
     this.ExecuteInternal();
   }
 }

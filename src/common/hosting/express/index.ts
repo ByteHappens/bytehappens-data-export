@@ -62,7 +62,7 @@ export class ExpressApp extends BaseApp {
   }
 
   protected StartInternal(): void {
-    this._logger.info(`Listening on host ${this._host} and port ${this._port}`);
+    this._logger.verbose(`Listening on host ${this._host} and port ${this._port}`);
 
     this._routes.forEach((route: IExpressRoute) => route.Register(this._app));
     this._app.listen(this._port, this._host);

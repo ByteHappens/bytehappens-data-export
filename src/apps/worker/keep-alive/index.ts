@@ -31,7 +31,7 @@ class KeepAliveTask extends BaseTask {
   }
 
   protected ExecuteInternal(): void {
-    this._logger.info(
+    this._logger.verbose(
       `Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${
         this._targetPort
       }`
