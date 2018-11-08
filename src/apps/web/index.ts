@@ -2,7 +2,11 @@ import { Logger } from "winston";
 import * as express from "express";
 
 import { IStartableApp } from "../../common/app";
-import { CreateLoggerAsync } from "../../common/logging/winston";
+import {
+  IWinstonMongoDbConnection,
+  CreateLoggerAsync,
+  logsDatabaseName
+} from "../../common/logging/winston";
 import {
   ExpressApp,
   IExpressRoute,
@@ -33,38 +37,43 @@ class StatusRoute extends BaseExpressRoute {
 async function GetAppAsync(): Promise<IStartableApp> {
   await InitialiseEnvironmentAsync();
 
-  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
-  let mongoDbHost: string = useMongoDb ? process.env.MONGODB_HOST : undefined;
-  let mongoDbPort: number = useMongoDb
-    ? parseInt(process.env.LOGGING_MONGODB_PORT)
-    : undefined;
-  let mongoDbUsername: string = useMongoDb
-    ? process.env.LOGGING_MONGODB_USERNAME
-    : undefined;
-  let mongoDbPassword: string = useMongoDb
-    ? process.env.LOGGING_MONGODB_PASSWORD
-    : undefined;
-  let mongoDbCollection: string = useMongoDb
-    ? process.env.PINGLISTENER_APP_NAME
-    : undefined;
+  let winstonMongoDbConnection: IWinstonMongoDbConnection = undefined;
 
-  let logger: Logger = await CreateLoggerAsync(
-    useMongoDb,
-    mongoDbHost,
-    mongoDbPort,
-    mongoDbUsername,
-    mongoDbPassword,
-    mongoDbCollection
-  );
+  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
+  if (useMongoDb) {
+    let host: string = process.env.MONGODB_HOST;
+    let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+    let username: string = process.env.LOGGING_MONGODB_USERNAME;
+    let password: string = process.env.LOGGING_MONGODB_PASSWORD;
+    let collection: string = process.env.PINGLISTENER_APP_NAME;
+
+    winstonMongoDbConnection = {
+      mongoDbConnection: {
+        host: host,
+        port: port
+      },
+      mongoDbUserConfiguration: {
+        username: username,
+        password: password,
+        databaseName: logsDatabaseName
+      },
+      collection: collection
+    };
+  }
+
+  let logger: Logger = await CreateLoggerAsync(winstonMongoDbConnection);
 
   let appName: string = process.env.DATAEXPORT_APP_NAME;
   let host: string = process.env.DATAEXPORT_HOST || "0.0.0.0";
   let port: number = parseInt(process.env.DATAEXPORT_PORT || process.env.PORT);
-  
+
   let path: string = process.env.DATAEXPORT_PATH || "/";
   let satusPath: string = process.env.DATAEXPORT_STATUS_PATH;
 
-  let routes: IExpressRoute[] = [new DataExportRoute(path, logger), new StatusRoute(satusPath, logger)];
+  let routes: IExpressRoute[] = [
+    new DataExportRoute(path, logger),
+    new StatusRoute(satusPath, logger)
+  ];
 
   return new ExpressApp(host, port, routes, appName, logger);
 }

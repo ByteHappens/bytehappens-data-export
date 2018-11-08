@@ -1,18 +1,57 @@
 import { MongoClient, MongoClientOptions, Db, DbAddUserOptions } from "mongodb";
 
-function GetMongoDbUri(host: string, port: number, username: string, password: string, databaseName?: string): string {
-  let response: string = `mongodb://${username}:${password}@${host}:${port}${databaseName !== undefined ? `/${databaseName}` : ""}`;
+export interface IMongoDbConnection {
+  host: string;
+  port: number;
+}
+
+export interface IMongoDbUserConfiguration {
+  username: string;
+  password: string;
+  databaseName?: string;
+}
+
+export function ValidateMongoDbConnection(
+  mongoDbConfiguration: IMongoDbConnection
+): void {
+  if (
+    mongoDbConfiguration.host === undefined ||
+    mongoDbConfiguration.port === undefined
+  ) {
+    throw new Error("Invalid MongoDb connection detected");
+  }
+}
+
+export function ValidateMongoDbUserConfiguration(
+  mongoDbUserConfiguration: IMongoDbUserConfiguration
+): void {
+  if (
+    mongoDbUserConfiguration.username === undefined ||
+    mongoDbUserConfiguration.password === undefined
+  ) {
+    throw new Error("Invalid MongoDb User configuration detected");
+  }
+}
+
+function GetMongoDbUri(
+  mongoDbConfiguration: IMongoDbConnection,
+  mongoDbUserConfiguration: IMongoDbUserConfiguration
+): string {
+  let response: string = `mongodb://${mongoDbUserConfiguration.username}:${
+    mongoDbUserConfiguration.password
+  }@${mongoDbConfiguration.host}:${mongoDbConfiguration.port}${
+    mongoDbUserConfiguration.databaseName !== undefined
+      ? `/${mongoDbUserConfiguration.databaseName}`
+      : ""
+  }`;
   return response;
 }
 
 export async function GetMongoClientAsync(
-  host: string,
-  port: number,
-  username: string,
-  password: string,
-  databaseName?: string
+  mongoDbConfiguration: IMongoDbConnection,
+  mongoDbUserConfiguration: IMongoDbUserConfiguration
 ): Promise<MongoClient> {
-  let mongoDbUri: string = GetMongoDbUri(host, port, username, password, databaseName);
+  let mongoDbUri: string = GetMongoDbUri(mongoDbConfiguration, mongoDbUserConfiguration);
 
   let mongoClientOptions: MongoClientOptions = {
     useNewUrlParser: true
@@ -27,26 +66,23 @@ export async function GetMongoClientAsync(
 }
 
 export async function CreateUserAsync(
-  host: string,
-  port: number,
-  adminUsername,
-  adminPassword,
-  username: string,
-  password: string,
-  database: string
+  mongoDbConfiguration: IMongoDbConnection,
+  mongoDbUserConfiguration: IMongoDbUserConfiguration,
+  newMongoDbUserConfiguration: IMongoDbUserConfiguration
 ): Promise<void> {
-  let client: MongoClient = await GetMongoClientAsync(host, port, adminUsername, adminPassword);
+  let client: MongoClient = await GetMongoClientAsync(mongoDbConfiguration, mongoDbUserConfiguration);
 
-  let db: Db = client.db(database);
+  let databaseName: string = newMongoDbUserConfiguration.databaseName;
 
   let options: DbAddUserOptions = {
     roles: [
       {
         role: "readWrite",
-        db: database
+        db: newMongoDbUserConfiguration.databaseName
       }
     ]
   };
 
-  db.addUser(username, password, options);
+  let db: Db = client.db(databaseName);
+  db.addUser(newMongoDbUserConfiguration.username, newMongoDbUserConfiguration.password, options);
 }
