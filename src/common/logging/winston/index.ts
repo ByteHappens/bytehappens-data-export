@@ -99,14 +99,14 @@ export async function CreateLoggerAsync(
 
   if (winstonTelegramConnection !== undefined) {
     try {
-      let transport: any = await InitMongoTransportAsync(
-        winstonMongoDbConnection
+      let transport: any = await InitTelegramTransport(
+        winstonTelegramConnection
       );
       response.add(transport);
     } catch (error) {
       response.error("Failed to add Telegram connection", {
         error,
-        winstonMongoDbConnection
+        winstonTelegramConnection
       });
     }
   }
