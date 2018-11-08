@@ -4,6 +4,7 @@ import * as http from "http";
 import { IStartableApp } from "../../../common/app";
 import {
   IWinstonMongoDbConnection,
+  IWinstonTelegramConnection,
   CreateLoggerAsync,
   logsDatabaseName
 } from "../../../common/logging/winston";
@@ -81,7 +82,23 @@ async function GetAppAsync(): Promise<IStartableApp> {
     };
   }
 
-  let logger: Logger = await CreateLoggerAsync(winstonMongoDbConnection);
+  let winstonTelegramConnection: IWinstonTelegramConnection = undefined;
+
+  let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
+  if (useTelegram) {
+    let botToken: string = process.env.LOGGING_TELEGRAM_BOT_TOKEN;
+    let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
+
+    winstonTelegramConnection = {
+      botToken: botToken,
+      chatId: chatId
+    };
+  }
+
+  let logger: Logger = await CreateLoggerAsync(
+    winstonMongoDbConnection,
+    winstonTelegramConnection
+  );
 
   let appName: string = process.env.KEEPALIVE_APP_NAME;
   let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
