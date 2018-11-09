@@ -1,12 +1,10 @@
+require('module-alias/register')
+
 import { Logger } from "winston";
 
-import { InitialiseEnvironmentAsync } from "../common/runtime/init";
-import { CreateLoggerAsync, logsDatabaseName } from "../common/logging/winston";
-import {
-  IMongoDbConnection,
-  IMongoDbUserConfiguration,
-  CreateUserAsync
-} from "../common/storage/mongodb";
+import { InitialiseEnvironmentAsync } from "common/runtime/init";
+import { CreateLoggerAsync, logsDatabaseName } from "common/logging/winston";
+import { IMongoDbConnection, IMongoDbUserConfiguration, CreateUserAsync } from "common/storage/mongodb";
 
 async function CreateMongoDbLoggingUserAsync(
   mongoDbConnection: IMongoDbConnection,
@@ -15,11 +13,7 @@ async function CreateMongoDbLoggingUserAsync(
   logger: Logger
 ): Promise<void> {
   try {
-    await CreateUserAsync(
-      mongoDbConnection,
-      mongoDbUserConfiguration,
-      newMongoDbUserConfiguration
-    );
+    await CreateUserAsync(mongoDbConnection, mongoDbUserConfiguration, newMongoDbUserConfiguration);
     logger.verbose("User created");
   } catch (error) {
     if (error.name == "MongoNetworkError") {
@@ -56,10 +50,8 @@ async function SetupAsync(): Promise<void> {
         port: mongoDbPort
       };
 
-      let mongoDbAdminUsername: string =
-        process.env.LOGGING_MONGODB_ADMIN_USERNAME;
-      let mongoDbAdminPassword: string =
-        process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
+      let mongoDbAdminUsername: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
+      let mongoDbAdminPassword: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
       let mongoDbUserConfiguration: IMongoDbUserConfiguration = {
         username: mongoDbAdminUsername,
         password: mongoDbAdminPassword
@@ -73,12 +65,7 @@ async function SetupAsync(): Promise<void> {
         databaseName: logsDatabaseName
       };
 
-      await CreateMongoDbLoggingUserAsync(
-        mongoDbConnection,
-        mongoDbUserConfiguration,
-        newMongoDbUserConfiguration,
-        logger
-      );
+      await CreateMongoDbLoggingUserAsync(mongoDbConnection, mongoDbUserConfiguration, newMongoDbUserConfiguration, logger);
     } catch (error) {
       logger.error("Error during setup", { error });
     }

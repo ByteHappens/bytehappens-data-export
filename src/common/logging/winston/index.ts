@@ -1,11 +1,5 @@
 import { MongoClient } from "mongodb";
-import {
-  Logger,
-  LoggerOptions,
-  format,
-  transports,
-  createLogger
-} from "winston";
+import { Logger, LoggerOptions, format, transports, createLogger } from "winston";
 let MongoDB = require("winston-mongodb").MongoDB;
 let Telegram = require("winston-telegram").Telegram;
 
@@ -15,7 +9,7 @@ import {
   ValidateMongoDbConnection,
   ValidateMongoDbUserConfiguration,
   GetMongoClientAsync
-} from "../../storage/mongodb";
+} from "common/storage/mongodb";
 
 export const logsDatabaseName: string = "logs";
 
@@ -41,18 +35,11 @@ function InitDefaultLogger(): Logger {
   return response;
 }
 
-async function InitMongoTransportAsync(
-  winstonMongoDbConnection: IWinstonMongoDbConnection
-): Promise<void> {
+async function InitMongoTransportAsync(winstonMongoDbConnection: IWinstonMongoDbConnection): Promise<void> {
   ValidateMongoDbConnection(winstonMongoDbConnection.mongoDbConnection);
-  ValidateMongoDbUserConfiguration(
-    winstonMongoDbConnection.mongoDbUserConfiguration
-  );
+  ValidateMongoDbUserConfiguration(winstonMongoDbConnection.mongoDbUserConfiguration);
 
-  let client: MongoClient = await GetMongoClientAsync(
-    winstonMongoDbConnection.mongoDbConnection,
-    winstonMongoDbConnection.mongoDbUserConfiguration
-  );
+  let client: MongoClient = await GetMongoClientAsync(winstonMongoDbConnection.mongoDbConnection, winstonMongoDbConnection.mongoDbUserConfiguration);
 
   let transportOptions = {
     db: client,
@@ -64,9 +51,7 @@ async function InitMongoTransportAsync(
   return response;
 }
 
-function InitTelegramTransport(
-  winstonTelegramConnection: IWinstonTelegramConnection
-) {
+function InitTelegramTransport(winstonTelegramConnection: IWinstonTelegramConnection) {
   let transportOptions = {
     token: winstonTelegramConnection.botToken,
     chatId: winstonTelegramConnection.chatId,
@@ -85,9 +70,7 @@ export async function CreateLoggerAsync(
 
   if (winstonMongoDbConnection !== undefined) {
     try {
-      let transport: any = await InitMongoTransportAsync(
-        winstonMongoDbConnection
-      );
+      let transport: any = await InitMongoTransportAsync(winstonMongoDbConnection);
       response.add(transport);
     } catch (error) {
       response.error("Failed to add MongoDb connection", {
@@ -99,9 +82,7 @@ export async function CreateLoggerAsync(
 
   if (winstonTelegramConnection !== undefined) {
     try {
-      let transport: any = await InitTelegramTransport(
-        winstonTelegramConnection
-      );
+      let transport: any = await InitTelegramTransport(winstonTelegramConnection);
       response.add(transport);
     } catch (error) {
       response.error("Failed to add Telegram connection", {

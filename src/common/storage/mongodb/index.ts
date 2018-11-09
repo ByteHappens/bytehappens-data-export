@@ -11,46 +11,26 @@ export interface IMongoDbUserConfiguration {
   databaseName?: string;
 }
 
-export function ValidateMongoDbConnection(
-  mongoDbConfiguration: IMongoDbConnection
-): void {
-  if (
-    mongoDbConfiguration.host === undefined ||
-    mongoDbConfiguration.port === undefined
-  ) {
+export function ValidateMongoDbConnection(mongoDbConfiguration: IMongoDbConnection): void {
+  if (mongoDbConfiguration.host === undefined || mongoDbConfiguration.port === undefined) {
     throw new Error("Invalid MongoDb connection detected");
   }
 }
 
-export function ValidateMongoDbUserConfiguration(
-  mongoDbUserConfiguration: IMongoDbUserConfiguration
-): void {
-  if (
-    mongoDbUserConfiguration.username === undefined ||
-    mongoDbUserConfiguration.password === undefined
-  ) {
+export function ValidateMongoDbUserConfiguration(mongoDbUserConfiguration: IMongoDbUserConfiguration): void {
+  if (mongoDbUserConfiguration.username === undefined || mongoDbUserConfiguration.password === undefined) {
     throw new Error("Invalid MongoDb User configuration detected");
   }
 }
 
-function GetMongoDbUri(
-  mongoDbConfiguration: IMongoDbConnection,
-  mongoDbUserConfiguration: IMongoDbUserConfiguration
-): string {
-  let response: string = `mongodb://${mongoDbUserConfiguration.username}:${
-    mongoDbUserConfiguration.password
-  }@${mongoDbConfiguration.host}:${mongoDbConfiguration.port}${
-    mongoDbUserConfiguration.databaseName !== undefined
-      ? `/${mongoDbUserConfiguration.databaseName}`
-      : ""
-  }`;
+function GetMongoDbUri(mongoDbConfiguration: IMongoDbConnection, mongoDbUserConfiguration: IMongoDbUserConfiguration): string {
+  let response: string = `mongodb://${mongoDbUserConfiguration.username}:${mongoDbUserConfiguration.password}@${mongoDbConfiguration.host}:${
+    mongoDbConfiguration.port
+  }${mongoDbUserConfiguration.databaseName !== undefined ? `/${mongoDbUserConfiguration.databaseName}` : ""}`;
   return response;
 }
 
-export async function GetMongoClientAsync(
-  mongoDbConfiguration: IMongoDbConnection,
-  mongoDbUserConfiguration: IMongoDbUserConfiguration
-): Promise<MongoClient> {
+export async function GetMongoClientAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUserConfiguration: IMongoDbUserConfiguration): Promise<MongoClient> {
   let mongoDbUri: string = GetMongoDbUri(mongoDbConfiguration, mongoDbUserConfiguration);
 
   let mongoClientOptions: MongoClientOptions = {

@@ -1,21 +1,16 @@
 import { CronJob } from "cron";
 import { Logger } from "winston";
 
-import { BaseApp } from "../../app";
-import { ITask } from "../../task";
+import { BaseApplication } from "common/runtime/application";
+import { ITask } from "common/runtime/task";
 
-export class CronApp extends BaseApp {
+export class CronApplication extends BaseApplication {
   private readonly _cronTime: string;
   private readonly _task: ITask;
   private readonly _job: CronJob;
 
-  public constructor(
-    task: ITask,
-    cronTime: string,
-    appName: string,
-    logger: Logger
-  ) {
-    super(appName, logger);
+  public constructor(task: ITask, cronTime: string, applicationName: string, logger: Logger) {
+    super(applicationName, logger);
 
     this._cronTime = cronTime;
     this._task = task;

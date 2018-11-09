@@ -1,7 +1,7 @@
 import { Logger } from "winston";
 import * as express from "express";
 
-import { BaseApp } from "../../app";
+import { BaseApplication } from "common/runtime/application";
 
 export interface IExpressRoute {
   Register(app: express.Application): void;
@@ -17,10 +17,7 @@ export abstract class BaseExpressRoute implements IExpressRoute {
     this._logger = logger;
   }
 
-  protected abstract ProcessRequestInternal(
-    request: express.Request,
-    response: express.Response
-  );
+  protected abstract ProcessRequestInternal(request: express.Request, response: express.Response);
 
   public Register(app: express.Application): void {
     this._logger.verbose(`Registering path ${this._path}`);
@@ -30,29 +27,20 @@ export abstract class BaseExpressRoute implements IExpressRoute {
     });
   }
 
-  public ProcessRequest(
-    request: express.Request,
-    response: express.Response
-  ): void {
+  public ProcessRequest(request: express.Request, response: express.Response): void {
     this._logger.verbose("Processing request");
     this.ProcessRequestInternal(request, response);
   }
 }
 
-export class ExpressApp extends BaseApp {
+export class ExpressApplication extends BaseApplication {
   private readonly _host: string;
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _app: express.Application;
 
-  public constructor(
-    host: string,
-    port: number,
-    routes: IExpressRoute[],
-    appName: string,
-    logger: Logger
-  ) {
-    super(appName, logger);
+  public constructor(host: string, port: number, routes: IExpressRoute[], applicationName: string, logger: Logger) {
+    super(applicationName, logger);
 
     this._host = host;
     this._port = port;

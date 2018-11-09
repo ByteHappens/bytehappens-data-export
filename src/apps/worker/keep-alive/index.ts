@@ -1,29 +1,20 @@
+require('module-alias/register')
+
 import { Logger } from "winston";
 import * as http from "http";
 
-import { IStartableApp } from "../../../common/app";
-import {
-  IWinstonMongoDbConnection,
-  IWinstonTelegramConnection,
-  CreateLoggerAsync,
-  logsDatabaseName
-} from "../../../common/logging/winston";
-import { BaseTask } from "../../../common/task";
-import { CronApp } from "../../../common/scheduling/cron";
-import { InitialiseEnvironmentAsync } from "../../../common/runtime/init";
+import { InitialiseEnvironmentAsync } from "common/runtime/init";
+import { IStartableApplication } from "common/runtime/application";
+import { BaseTask } from "common/runtime/task";
+import { IWinstonMongoDbConnection, IWinstonTelegramConnection, CreateLoggerAsync, logsDatabaseName } from "common/logging/winston";
+import { CronApplication } from "common/scheduling/cron";
 
 class KeepAliveTask extends BaseTask {
   private readonly _targetHost: string;
   private readonly _targetPath: string;
   private readonly _targetPort: number;
 
-  public constructor(
-    targetHost: string,
-    targetPath: string,
-    targetPort: number,
-    taskName: string,
-    logger: Logger
-  ) {
+  public constructor(targetHost: string, targetPath: string, targetPort: number, taskName: string, logger: Logger) {
     super(taskName, logger);
 
     this._targetHost = targetHost;
@@ -32,11 +23,7 @@ class KeepAliveTask extends BaseTask {
   }
 
   protected ExecuteInternal(): void {
-    this._logger.verbose(
-      `Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${
-        this._targetPort
-      }`
-    );
+    this._logger.verbose(`Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${this._targetPort}`);
 
     try {
       http.get(
@@ -55,7 +42,7 @@ class KeepAliveTask extends BaseTask {
   }
 }
 
-async function GetAppAsync(): Promise<IStartableApp> {
+async function GetAppAsync(): Promise<IStartableApplication> {
   await InitialiseEnvironmentAsync();
 
   let winstonMongoDbConnection: IWinstonMongoDbConnection = undefined;
@@ -95,25 +82,16 @@ async function GetAppAsync(): Promise<IStartableApp> {
     };
   }
 
-  let logger: Logger = await CreateLoggerAsync(
-    winstonMongoDbConnection,
-    winstonTelegramConnection
-  );
+  let logger: Logger = await CreateLoggerAsync(winstonMongoDbConnection, winstonTelegramConnection);
 
-  let appName: string = process.env.KEEPALIVE_APP_NAME;
+  let applicationName: string = process.env.KEEPALIVE_APP_NAME;
   let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
   let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
   let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT || "80");
   let cronTime: string = process.env.KEEPALIVE_CRONTIME;
 
-  let task = new KeepAliveTask(
-    targetHost,
-    targetPath,
-    targetPort,
-    appName,
-    logger
-  );
-  return new CronApp(task, cronTime, appName, logger);
+  let task = new KeepAliveTask(targetHost, targetPath, targetPort, applicationName, logger);
+  return new CronApplication(task, cronTime, applicationName, logger);
 }
 
 GetAppAsync().then(app => app.Start());
