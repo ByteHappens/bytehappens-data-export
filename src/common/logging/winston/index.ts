@@ -11,8 +11,6 @@ import {
   GetMongoClientAsync
 } from "common/storage/mongodb";
 
-export const logsDatabaseName: string = "logs";
-
 export interface IWinstonMongoDbConnection {
   mongoDbConnection: IMongoDbConnection;
   mongoDbUserConfiguration: IMongoDbUserConfiguration;

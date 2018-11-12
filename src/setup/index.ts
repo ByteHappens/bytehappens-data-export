@@ -3,7 +3,7 @@ require('module-alias/register')
 import { Logger } from "winston";
 
 import { InitialiseEnvironmentAsync } from "common/runtime/init";
-import { CreateLoggerAsync, logsDatabaseName } from "common/logging/winston";
+import { CreateLoggerAsync } from "common/logging/winston";
 import { IMongoDbConnection, IMongoDbUserConfiguration, CreateUserAsync } from "common/storage/mongodb";
 
 async function CreateMongoDbLoggingUserAsync(
@@ -59,10 +59,13 @@ async function SetupAsync(): Promise<void> {
 
       let mongoDbUsername: string = process.env.LOGGING_MONGODB_USERNAME;
       let mongoDbPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
+
+      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
+
       let newMongoDbUserConfiguration: IMongoDbUserConfiguration = {
         username: mongoDbUsername,
         password: mongoDbPassword,
-        databaseName: logsDatabaseName
+        databaseName: databaseName
       };
 
       await CreateMongoDbLoggingUserAsync(mongoDbConnection, mongoDbUserConfiguration, newMongoDbUserConfiguration, logger);

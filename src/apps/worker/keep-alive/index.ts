@@ -6,7 +6,7 @@ import * as http from "http";
 import { InitialiseEnvironmentAsync } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { BaseTask } from "common/runtime/task";
-import { IWinstonMongoDbConnection, IWinstonTelegramConnection, CreateLoggerAsync, logsDatabaseName } from "common/logging/winston";
+import { IWinstonMongoDbConnection, IWinstonTelegramConnection, CreateLoggerAsync } from "common/logging/winston";
 import { CronApplication } from "common/scheduling/cron";
 
 class KeepAliveTask extends BaseTask {
@@ -51,6 +51,7 @@ async function GetAppAsync(): Promise<IStartableApplication> {
   if (useMongoDb) {
     let host: string = process.env.MONGODB_HOST;
     let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+    let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
     let username: string = process.env.LOGGING_MONGODB_USERNAME;
     let password: string = process.env.LOGGING_MONGODB_PASSWORD;
     let collection: string = process.env.KEEPALIVE_APP_NAME;
@@ -63,7 +64,7 @@ async function GetAppAsync(): Promise<IStartableApplication> {
       mongoDbUserConfiguration: {
         username: username,
         password: password,
-        databaseName: logsDatabaseName
+        databaseName: databaseName
       },
       collection: collection
     };
