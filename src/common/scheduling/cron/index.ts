@@ -14,7 +14,7 @@ export class CronApplication extends BaseApplication {
 
     this._cronTime = cronTime;
     this._task = task;
-    this._job = new CronJob(this._cronTime, () => this._task.Execute());
+    this._job = new CronJob(this._cronTime, async () => await this._task.ExecuteAsync());
   }
 
   protected StartInternal(): void {

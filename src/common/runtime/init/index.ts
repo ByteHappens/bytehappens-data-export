@@ -1,7 +1,19 @@
 import { config } from "dotenv";
 
-export async function InitialiseEnvironmentAsync(): Promise<void> {
-  if (process.env.NODE_ENV !== "production") {
-    config();
+import { IApplication } from "common/runtime/application";
+
+export abstract class InititaliserBase<T extends IApplication> {
+  private InitialiseEnvironment(): void {
+    if (process.env.NODE_ENV !== "production") {
+      config();
+    }
+  }
+
+  protected abstract InitialiseInternalAsync(): Promise<T>;
+
+  public async InitialiseAsync(): Promise<T> {
+    this.InitialiseEnvironment();
+    let application: T = await this.InitialiseInternalAsync();
+    return application;
   }
 }

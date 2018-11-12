@@ -1,7 +1,13 @@
 import { Logger } from "winston";
 
+import { IApplication } from "common/runtime/application";
+
 export interface ITask {
-  Execute(): void;
+  ExecuteAsync(): Promise<void>;
+}
+
+export interface IRunnableApplication extends IApplication {
+  RunAsync(): void;
 }
 
 export abstract class BaseTask implements ITask {
@@ -13,10 +19,21 @@ export abstract class BaseTask implements ITask {
     this._logger = logger;
   }
 
-  protected abstract ExecuteInternal(): void;
+  protected abstract ExecuteInternalAsync(): Promise<void>;
 
-  public Execute(): void {
+  public async ExecuteAsync(): Promise<void> {
     this._logger.verbose(`Executing ${this._taskName} Task`);
-    this.ExecuteInternal();
+    await this.ExecuteInternalAsync();
+  }
+}
+
+export class TaskRunnerApplication implements IRunnableApplication {
+  private readonly _task: ITask;
+  constructor(task: ITask) {
+    this._task = task;
+  }
+
+  public async RunAsync(): Promise<void> {
+    await this._task.ExecuteAsync();
   }
 }

@@ -5,7 +5,7 @@ export interface IMongoDbConnection {
   port: number;
 }
 
-export interface IMongoDbUserConfiguration {
+export interface IMongoDbUser {
   username: string;
   password: string;
   databaseName?: string;
@@ -17,21 +17,21 @@ export function ValidateMongoDbConnection(mongoDbConfiguration: IMongoDbConnecti
   }
 }
 
-export function ValidateMongoDbUserConfiguration(mongoDbUserConfiguration: IMongoDbUserConfiguration): void {
-  if (mongoDbUserConfiguration.username === undefined || mongoDbUserConfiguration.password === undefined) {
-    throw new Error("Invalid MongoDb User configuration detected");
+export function ValidateMongoDbUser(mongoDbUser: IMongoDbUser): void {
+  if (mongoDbUser.username === undefined || mongoDbUser.password === undefined) {
+    throw new Error("Invalid MongoDb User detected");
   }
 }
 
-function GetMongoDbUri(mongoDbConfiguration: IMongoDbConnection, mongoDbUserConfiguration: IMongoDbUserConfiguration): string {
-  let response: string = `mongodb://${mongoDbUserConfiguration.username}:${mongoDbUserConfiguration.password}@${mongoDbConfiguration.host}:${
-    mongoDbConfiguration.port
-  }${mongoDbUserConfiguration.databaseName !== undefined ? `/${mongoDbUserConfiguration.databaseName}` : ""}`;
+function GetMongoDbUri(mongoDbConfiguration: IMongoDbConnection, mongoDbUser: IMongoDbUser): string {
+  let response: string = `mongodb://${mongoDbUser.username}:${mongoDbUser.password}@${mongoDbConfiguration.host}:${mongoDbConfiguration.port}${
+    mongoDbUser.databaseName !== undefined ? `/${mongoDbUser.databaseName}` : ""
+  }`;
   return response;
 }
 
-export async function GetMongoClientAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUserConfiguration: IMongoDbUserConfiguration): Promise<MongoClient> {
-  let mongoDbUri: string = GetMongoDbUri(mongoDbConfiguration, mongoDbUserConfiguration);
+export async function GetMongoClientAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUser: IMongoDbUser): Promise<MongoClient> {
+  let mongoDbUri: string = GetMongoDbUri(mongoDbConfiguration, mongoDbUser);
 
   let mongoClientOptions: MongoClientOptions = {
     useNewUrlParser: true
@@ -45,24 +45,20 @@ export async function GetMongoClientAsync(mongoDbConfiguration: IMongoDbConnecti
   return client;
 }
 
-export async function CreateUserAsync(
-  mongoDbConfiguration: IMongoDbConnection,
-  mongoDbUserConfiguration: IMongoDbUserConfiguration,
-  newMongoDbUserConfiguration: IMongoDbUserConfiguration
-): Promise<void> {
-  let client: MongoClient = await GetMongoClientAsync(mongoDbConfiguration, mongoDbUserConfiguration);
+export async function CreateUserAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser): Promise<void> {
+  let client: MongoClient = await GetMongoClientAsync(mongoDbConfiguration, mongoDbUser);
 
-  let databaseName: string = newMongoDbUserConfiguration.databaseName;
+  let databaseName: string = newMongoDbUser.databaseName;
 
   let options: DbAddUserOptions = {
     roles: [
       {
         role: "readWrite",
-        db: newMongoDbUserConfiguration.databaseName
+        db: newMongoDbUser.databaseName
       }
     ]
   };
 
   let db: Db = client.db(databaseName);
-  db.addUser(newMongoDbUserConfiguration.username, newMongoDbUserConfiguration.password, options);
+  db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
 }

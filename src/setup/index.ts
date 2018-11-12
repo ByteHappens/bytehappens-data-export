@@ -1,81 +1,105 @@
-require('module-alias/register')
+require("module-alias/register");
 
 import { Logger } from "winston";
 
-import { InitialiseEnvironmentAsync } from "common/runtime/init";
-import { CreateLoggerAsync } from "common/logging/winston";
-import { IMongoDbConnection, IMongoDbUserConfiguration, CreateUserAsync } from "common/storage/mongodb";
+import { InititaliserBase } from "common/runtime/init";
+import { ITask, BaseTask, IRunnableApplication, TaskRunnerApplication } from "common/runtime/task";
+import { IWinstonConsoleConfiguration, CreateLoggerAsync } from "common/logging/winston";
+import { IMongoDbConnection, IMongoDbUser, CreateUserAsync } from "common/storage/mongodb";
 
-async function CreateMongoDbLoggingUserAsync(
-  mongoDbConnection: IMongoDbConnection,
-  mongoDbUserConfiguration: IMongoDbUserConfiguration,
-  newMongoDbUserConfiguration: IMongoDbUserConfiguration,
-  logger: Logger
-): Promise<void> {
-  try {
-    await CreateUserAsync(mongoDbConnection, mongoDbUserConfiguration, newMongoDbUserConfiguration);
-    logger.verbose("User created");
-  } catch (error) {
-    if (error.name == "MongoNetworkError") {
-      logger.error("Failed to create user: Server unreachable", {
-        mongoDbConnection,
-        mongoDbUserConfiguration,
-        newMongoDbUserConfiguration
-      });
-    } else {
-      logger.error("Failed to create user", {
-        error: error,
-        mongoDbConnection,
-        mongoDbUserConfiguration,
-        newMongoDbUserConfiguration
-      });
-    }
+class Task extends BaseTask {
+  private readonly _mongoDbConnection: IMongoDbConnection;
+  private readonly _mongoDbUser: IMongoDbUser;
+  private readonly _newMongoDbUser: IMongoDbUser;
+
+  constructor(mongoDbConnection: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser, taskName: string, logger: Logger) {
+    super(taskName, logger);
+
+    this._mongoDbConnection = mongoDbConnection;
+    this._mongoDbUser = mongoDbUser;
+    this._newMongoDbUser = newMongoDbUser;
   }
-}
 
-async function SetupAsync(): Promise<void> {
-  await InitialiseEnvironmentAsync();
-
-  let logger: Logger = await CreateLoggerAsync();
-
-  logger.verbose("Running setup");
-
-  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
-  if (useMongoDb) {
+  protected async ExecuteInternalAsync(): Promise<void> {
     try {
-      let mongoDbHost: string = process.env.LOGGING_MONGODB_HOST;
-      let mongoDbPort: number = parseInt(process.env.LOGGING_MONGODB_PORT);
-      let mongoDbConnection: IMongoDbConnection = {
-        host: mongoDbHost,
-        port: mongoDbPort
-      };
-
-      let mongoDbAdminUsername: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
-      let mongoDbAdminPassword: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
-      let mongoDbUserConfiguration: IMongoDbUserConfiguration = {
-        username: mongoDbAdminUsername,
-        password: mongoDbAdminPassword
-      };
-
-      let mongoDbUsername: string = process.env.LOGGING_MONGODB_USERNAME;
-      let mongoDbPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
-
-      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-
-      let newMongoDbUserConfiguration: IMongoDbUserConfiguration = {
-        username: mongoDbUsername,
-        password: mongoDbPassword,
-        databaseName: databaseName
-      };
-
-      await CreateMongoDbLoggingUserAsync(mongoDbConnection, mongoDbUserConfiguration, newMongoDbUserConfiguration, logger);
+      await CreateUserAsync(this._mongoDbConnection, this._mongoDbUser, this._newMongoDbUser);
+      this._logger.verbose("User created");
     } catch (error) {
-      logger.error("Error during setup", { error });
+      if (error.name == "MongoNetworkError") {
+        this._logger.error("Failed to create user: Server unreachable", {
+          mongoDbConnection: this._mongoDbConnection,
+          mongoDbUser: this._mongoDbUser,
+          newMongoDbUser: this._newMongoDbUser
+        });
+      } else {
+        this._logger.error("Failed to create user", {
+          error: error,
+          mongoDbConnection: this._mongoDbConnection,
+          mongoDbUser: this._mongoDbUser,
+          newMongoDbUser: this._newMongoDbUser
+        });
+      }
     }
-  }
 
-  logger.verbose("Exiting");
-  process.exit();
+    this._logger.verbose("Exiting");
+    process.exit();
+  }
 }
 
-SetupAsync();
+class Initialiser extends InititaliserBase<IRunnableApplication> {
+  protected async InitialiseInternalAsync(): Promise<IRunnableApplication> {
+    let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
+
+    let consoleConfiguration: IWinstonConsoleConfiguration = {
+      level: consoleLevel
+    };
+
+    let logger: Logger = await CreateLoggerAsync(consoleConfiguration);
+
+    let application: IRunnableApplication = undefined;
+
+    let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
+    if (useMongoDb) {
+      try {
+        let host: string = process.env.LOGGING_MONGODB_HOST;
+        let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+        let connection: IMongoDbConnection = {
+          host: host,
+          port: port
+        };
+
+        let username: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
+        let password: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
+        let user: IMongoDbUser = {
+          username: username,
+          password: password
+        };
+
+        let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
+        let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
+
+        let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
+
+        let newUser: IMongoDbUser = {
+          username: newUsername,
+          password: newPassword,
+          databaseName: databaseName
+        };
+
+        let task: ITask = new Task(connection, user, newUser, "Setup", logger);
+        application = new TaskRunnerApplication(task);
+      } catch (error) {
+        logger.error("Error during setup", { error });
+      }
+
+      return application;
+    }
+  }
+}
+
+let initialiser: Initialiser = new Initialiser();
+initialiser.InitialiseAsync().then(async (application: IRunnableApplication) => {
+  if (application != undefined) {
+    await application.RunAsync();
+  }
+});

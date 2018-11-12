@@ -3,28 +3,46 @@ import { Logger, LoggerOptions, format, transports, createLogger } from "winston
 let MongoDB = require("winston-mongodb").MongoDB;
 let Telegram = require("winston-telegram").Telegram;
 
-import {
-  IMongoDbConnection,
-  IMongoDbUserConfiguration,
-  ValidateMongoDbConnection,
-  ValidateMongoDbUserConfiguration,
-  GetMongoClientAsync
-} from "common/storage/mongodb";
+import { IMongoDbConnection, IMongoDbUser, ValidateMongoDbConnection, ValidateMongoDbUser, GetMongoClientAsync } from "common/storage/mongodb";
 
-export interface IWinstonMongoDbConnection {
-  mongoDbConnection: IMongoDbConnection;
-  mongoDbUserConfiguration: IMongoDbUserConfiguration;
+export interface IWinstonConfiguration {
+  level: string;
+}
+
+export interface IWinstonConsoleConfiguration extends IWinstonConfiguration {}
+
+export interface IWinstonMongoDbConfiguration extends IWinstonConfiguration {
+  connection: IMongoDbConnection;
+  user: IMongoDbUser;
   collection: string;
 }
 
-export interface IWinstonTelegramConnection {
+export interface IWinstonTelegramConfiguration extends IWinstonConfiguration {
   botToken: string;
   chatId: number;
 }
 
-function InitDefaultLogger(): Logger {
+function ValidateConfiguration(configuration: IWinstonConfiguration): void {}
+
+function ValidateConsoleConfiguration(configuration: IWinstonConsoleConfiguration): void {
+  ValidateConfiguration(configuration);
+}
+
+function ValidateMongoDbConfiguration(configuration: IWinstonMongoDbConfiguration): void {
+  ValidateConfiguration(configuration);
+  ValidateMongoDbConnection(configuration.connection);
+  ValidateMongoDbUser(configuration.user);
+}
+
+function ValidateTelegramConfiguration(configuration: IWinstonTelegramConfiguration): void {
+  ValidateConfiguration(configuration);
+}
+
+function InitDefaultLogger(configuration: IWinstonConsoleConfiguration): Logger {
+  ValidateConsoleConfiguration(configuration);
+
   let loggerOptions: LoggerOptions = {
-    level: "verbose",
+    level: configuration.level,
     format: format.json(),
     transports: [new transports.Console()]
   };
@@ -33,27 +51,28 @@ function InitDefaultLogger(): Logger {
   return response;
 }
 
-async function InitMongoTransportAsync(winstonMongoDbConnection: IWinstonMongoDbConnection): Promise<void> {
-  ValidateMongoDbConnection(winstonMongoDbConnection.mongoDbConnection);
-  ValidateMongoDbUserConfiguration(winstonMongoDbConnection.mongoDbUserConfiguration);
+async function InitMongoTransportAsync(configuration: IWinstonMongoDbConfiguration): Promise<void> {
+  ValidateMongoDbConfiguration(configuration);
 
-  let client: MongoClient = await GetMongoClientAsync(winstonMongoDbConnection.mongoDbConnection, winstonMongoDbConnection.mongoDbUserConfiguration);
+  let client: MongoClient = await GetMongoClientAsync(configuration.connection, configuration.user);
 
   let transportOptions = {
+    level: configuration.level,
     db: client,
-    collection: winstonMongoDbConnection.collection,
-    level: "verbose"
+    collection: configuration.collection
   };
 
   let response: any = new MongoDB(transportOptions);
   return response;
 }
 
-function InitTelegramTransport(winstonTelegramConnection: IWinstonTelegramConnection) {
+function InitTelegramTransport(configuration: IWinstonTelegramConfiguration) {
+  ValidateTelegramConfiguration(configuration);
+
   let transportOptions = {
-    token: winstonTelegramConnection.botToken,
-    chatId: winstonTelegramConnection.chatId,
-    level: "info"
+    level: configuration.level,
+    token: configuration.botToken,
+    chatId: configuration.chatId
   };
 
   let response: any = new Telegram(transportOptions);
@@ -61,31 +80,32 @@ function InitTelegramTransport(winstonTelegramConnection: IWinstonTelegramConnec
 }
 
 export async function CreateLoggerAsync(
-  winstonMongoDbConnection?: IWinstonMongoDbConnection,
-  winstonTelegramConnection?: IWinstonTelegramConnection
+  consoleConfiguration: IWinstonConsoleConfiguration,
+  mongoDbConfiguration?: IWinstonMongoDbConfiguration,
+  telegramConnection?: IWinstonTelegramConfiguration
 ): Promise<Logger> {
-  let response: Logger = InitDefaultLogger();
+  let response: Logger = InitDefaultLogger(consoleConfiguration);
 
-  if (winstonMongoDbConnection !== undefined) {
+  if (mongoDbConfiguration !== undefined) {
     try {
-      let transport: any = await InitMongoTransportAsync(winstonMongoDbConnection);
+      let transport: any = await InitMongoTransportAsync(mongoDbConfiguration);
       response.add(transport);
     } catch (error) {
       response.error("Failed to add MongoDb connection", {
         error,
-        winstonMongoDbConnection
+        mongoDbConfiguration
       });
     }
   }
 
-  if (winstonTelegramConnection !== undefined) {
+  if (telegramConnection !== undefined) {
     try {
-      let transport: any = await InitTelegramTransport(winstonTelegramConnection);
+      let transport: any = await InitTelegramTransport(telegramConnection);
       response.add(transport);
     } catch (error) {
       response.error("Failed to add Telegram connection", {
         error,
-        winstonTelegramConnection
+        telegramConnection
       });
     }
   }

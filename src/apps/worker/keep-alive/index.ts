@@ -1,15 +1,15 @@
-require('module-alias/register')
+require("module-alias/register");
 
 import { Logger } from "winston";
 import * as http from "http";
 
-import { InitialiseEnvironmentAsync } from "common/runtime/init";
+import { InititaliserBase } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { BaseTask } from "common/runtime/task";
-import { IWinstonMongoDbConnection, IWinstonTelegramConnection, CreateLoggerAsync } from "common/logging/winston";
+import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
 import { CronApplication } from "common/scheduling/cron";
 
-class KeepAliveTask extends BaseTask {
+class Task extends BaseTask {
   private readonly _targetHost: string;
   private readonly _targetPath: string;
   private readonly _targetPort: number;
@@ -22,7 +22,7 @@ class KeepAliveTask extends BaseTask {
     this._targetPort = targetPort;
   }
 
-  protected ExecuteInternal(): void {
+  protected async ExecuteInternalAsync(): Promise<void> {
     this._logger.verbose(`Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${this._targetPort}`);
 
     try {
@@ -42,57 +42,70 @@ class KeepAliveTask extends BaseTask {
   }
 }
 
-async function GetAppAsync(): Promise<IStartableApplication> {
-  await InitialiseEnvironmentAsync();
+class Initialiser extends InititaliserBase<IStartableApplication> {
+  protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
+    let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 
-  let winstonMongoDbConnection: IWinstonMongoDbConnection = undefined;
-
-  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
-  if (useMongoDb) {
-    let host: string = process.env.MONGODB_HOST;
-    let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
-    let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-    let username: string = process.env.LOGGING_MONGODB_USERNAME;
-    let password: string = process.env.LOGGING_MONGODB_PASSWORD;
-    let collection: string = process.env.KEEPALIVE_APP_NAME;
-
-    winstonMongoDbConnection = {
-      mongoDbConnection: {
-        host: host,
-        port: port
-      },
-      mongoDbUserConfiguration: {
-        username: username,
-        password: password,
-        databaseName: databaseName
-      },
-      collection: collection
+    let consoleConfiguration: IWinstonConsoleConfiguration = {
+      level: consoleLevel
     };
+
+    let mongoDbConfiguration: IWinstonMongoDbConfiguration = undefined;
+
+    let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
+    if (useMongoDb) {
+      let mongoDbLevel: string = process.env.LOGGING_MONGODB_LEVEL;
+
+      let host: string = process.env.MONGODB_HOST;
+      let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+      let username: string = process.env.LOGGING_MONGODB_USERNAME;
+      let password: string = process.env.LOGGING_MONGODB_PASSWORD;
+      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
+      let collection: string = process.env.PINGLISTENER_APP_NAME;
+
+      mongoDbConfiguration = {
+        level: mongoDbLevel,
+        connection: {
+          host: host,
+          port: port
+        },
+        user: {
+          username: username,
+          password: password,
+          databaseName: databaseName
+        },
+        collection: collection
+      };
+    }
+
+    let telegramConfiguration: IWinstonTelegramConfiguration = undefined;
+
+    let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
+    if (useTelegram) {
+      let telegramLevel: string = process.env.LOGGING_TELEGRAM_LEVEL;
+
+      let botToken: string = process.env.LOGGING_TELEGRAM_BOT_TOKEN;
+      let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
+
+      telegramConfiguration = {
+        level: telegramLevel,
+        botToken: botToken,
+        chatId: chatId
+      };
+    }
+
+    let logger: Logger = await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
+
+    let applicationName: string = process.env.KEEPALIVE_APP_NAME;
+    let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
+    let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
+    let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT || "80");
+    let cronTime: string = process.env.KEEPALIVE_CRONTIME;
+
+    let task = new Task(targetHost, targetPath, targetPort, applicationName, logger);
+    return new CronApplication(task, cronTime, applicationName, logger);
   }
-
-  let winstonTelegramConnection: IWinstonTelegramConnection = undefined;
-
-  let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
-  if (useTelegram) {
-    let botToken: string = process.env.LOGGING_TELEGRAM_BOT_TOKEN;
-    let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
-
-    winstonTelegramConnection = {
-      botToken: botToken,
-      chatId: chatId
-    };
-  }
-
-  let logger: Logger = await CreateLoggerAsync(winstonMongoDbConnection, winstonTelegramConnection);
-
-  let applicationName: string = process.env.KEEPALIVE_APP_NAME;
-  let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
-  let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
-  let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT || "80");
-  let cronTime: string = process.env.KEEPALIVE_CRONTIME;
-
-  let task = new KeepAliveTask(targetHost, targetPath, targetPort, applicationName, logger);
-  return new CronApplication(task, cronTime, applicationName, logger);
 }
 
-GetAppAsync().then(app => app.Start());
+let initialiser: Initialiser = new Initialiser();
+initialiser.InitialiseAsync().then((application: IStartableApplication) => application.Start());
