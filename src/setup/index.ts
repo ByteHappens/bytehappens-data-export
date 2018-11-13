@@ -2,7 +2,7 @@ require("module-alias/register");
 
 import { Logger } from "winston";
 
-import { InititaliserBase } from "common/runtime/init";
+import { BaseInititaliser } from "common/runtime/init";
 import { ITask, BaseTask, IRunnableApplication, TaskRunnerApplication } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, CreateLoggerAsync } from "common/logging/winston";
 import { IMongoDbConnection, IMongoDbUser, CreateUserAsync } from "common/storage/mongodb";
@@ -12,7 +12,7 @@ class Task extends BaseTask {
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _newMongoDbUser: IMongoDbUser;
 
-  constructor(mongoDbConnection: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser, taskName: string, logger: Logger) {
+  public constructor(mongoDbConnection: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser, taskName: string, logger: Logger) {
     super(taskName, logger);
 
     this._mongoDbConnection = mongoDbConnection;
@@ -46,7 +46,7 @@ class Task extends BaseTask {
   }
 }
 
-class Initialiser extends InititaliserBase<IRunnableApplication> {
+class Initialiser extends BaseInititaliser<IRunnableApplication> {
   protected async InitialiseInternalAsync(): Promise<IRunnableApplication> {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 

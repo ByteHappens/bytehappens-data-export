@@ -2,7 +2,7 @@ import { config } from "dotenv";
 
 import { IApplication } from "common/runtime/application";
 
-export abstract class InititaliserBase<T extends IApplication> {
+export abstract class BaseInititaliser<T extends IApplication> {
   private InitialiseEnvironment(): void {
     if (process.env.NODE_ENV !== "production") {
       config();

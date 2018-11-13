@@ -3,26 +3,26 @@ require("module-alias/register");
 import { Logger } from "winston";
 import * as express from "express";
 
-import { InititaliserBase } from "common/runtime/init";
+import { BaseInititaliser } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
-import { ExpressApplication, IExpressRoute, BaseExpressRoute } from "common/hosting/express";
+import { ExpressApplication, IExpressRoute, BaseSimpleGetExpressRoute } from "common/hosting/express";
 
-class DataExportRoute extends BaseExpressRoute {
+class DataExportRoute extends BaseSimpleGetExpressRoute {
   protected ProcessRequestInternal(request: express.Request, response: express.Response): void {
     response.status(200);
     response.send("I'm alive !");
   }
 }
 
-class StatusRoute extends BaseExpressRoute {
+class StatusRoute extends BaseSimpleGetExpressRoute {
   protected ProcessRequestInternal(request: express.Request, response: express.Response): void {
     response.status(204);
     response.send();
   }
 }
 
-class Initialiser extends InititaliserBase<IStartableApplication> {
+class Initialiser extends BaseInititaliser<IStartableApplication> {
   protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 

@@ -4,27 +4,36 @@ import * as express from "express";
 import { BaseStartableApplication } from "common/runtime/application";
 
 export interface IExpressRoute {
-  readonly path: string;
-
-  ProcessRequest(request: express.Request, response: express.Response): void;
+  GetRouter(): express.Router;
 }
 
 export abstract class BaseExpressRoute implements IExpressRoute {
-  public readonly path: string;
-
+  protected readonly _path: string;
   protected readonly _logger: Logger;
 
   public constructor(path: string, logger: Logger) {
-    this.path = path;
-
+    this._path = path;
     this._logger = logger;
   }
 
+  public abstract GetRouter(): express.Router;
+}
+
+export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
   protected abstract ProcessRequestInternal(request: express.Request, response: express.Response);
 
   public ProcessRequest(request: express.Request, response: express.Response): void {
-    this._logger.verbose("Processing request");
     this.ProcessRequestInternal(request, response);
+  }
+
+  public GetRouter(): express.Router {
+    let router: express.Router = express.Router();
+
+    router.get(this._path, (request, response) => {
+      this.ProcessRequest(request, response);
+    });
+
+    return router;
   }
 }
 
@@ -45,13 +54,7 @@ export class ExpressApplication extends BaseStartableApplication {
   }
 
   private Register(route: IExpressRoute) {
-    this._logger.verbose(`Registering path ${route.path}`);
-
-    let router: express.Router = express.Router();
-
-    router.get(route.path, (request, response) => {
-      route.ProcessRequest(request, response);
-    });
+    let router = route.GetRouter();
     this._expressApplication.use(router);
   }
 

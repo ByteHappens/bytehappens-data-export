@@ -3,7 +3,7 @@ require("module-alias/register");
 import { Logger } from "winston";
 import * as http from "http";
 
-import { InititaliserBase } from "common/runtime/init";
+import { BaseInititaliser } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { BaseTask } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
@@ -42,7 +42,7 @@ class Task extends BaseTask {
   }
 }
 
-class Initialiser extends InititaliserBase<IStartableApplication> {
+class Initialiser extends BaseInititaliser<IStartableApplication> {
   protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 

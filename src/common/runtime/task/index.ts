@@ -29,7 +29,8 @@ export abstract class BaseTask implements ITask {
 
 export class TaskRunnerApplication implements IRunnableApplication {
   private readonly _task: ITask;
-  constructor(task: ITask) {
+  
+  public constructor(task: ITask) {
     this._task = task;
   }
 
