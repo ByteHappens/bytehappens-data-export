@@ -1,10 +1,10 @@
 import { CronJob } from "cron";
 import { Logger } from "winston";
 
-import { BaseApplication } from "common/runtime/application";
+import { BaseStartableApplication } from "common/runtime/application";
 import { ITask } from "common/runtime/task";
 
-export class CronApplication extends BaseApplication {
+export class CronApplication extends BaseStartableApplication {
   private readonly _cronTime: string;
   private readonly _task: ITask;
   private readonly _job: CronJob;

@@ -1,7 +1,7 @@
 import { Logger } from "winston";
 import * as express from "express";
 
-import { BaseApplication } from "common/runtime/application";
+import { BaseStartableApplication } from "common/runtime/application";
 
 export interface IExpressRoute {
   Register(app: express.Application): void;
@@ -33,7 +33,7 @@ export abstract class BaseExpressRoute implements IExpressRoute {
   }
 }
 
-export class ExpressApplication extends BaseApplication {
+export class ExpressApplication extends BaseStartableApplication {
   private readonly _host: string;
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
