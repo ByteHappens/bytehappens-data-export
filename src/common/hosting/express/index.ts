@@ -4,28 +4,23 @@ import * as express from "express";
 import { BaseStartableApplication } from "common/runtime/application";
 
 export interface IExpressRoute {
-  Register(app: express.Application): void;
+  readonly path: string;
+
   ProcessRequest(request: express.Request, response: express.Response): void;
 }
 
 export abstract class BaseExpressRoute implements IExpressRoute {
-  private readonly _path: string;
+  public readonly path: string;
+
   protected readonly _logger: Logger;
 
   public constructor(path: string, logger: Logger) {
-    this._path = path;
+    this.path = path;
+
     this._logger = logger;
   }
 
   protected abstract ProcessRequestInternal(request: express.Request, response: express.Response);
-
-  public Register(app: express.Application): void {
-    this._logger.verbose(`Registering path ${this._path}`);
-
-    app.get(this._path, (request, response) => {
-      this.ProcessRequest(request, response);
-    });
-  }
 
   public ProcessRequest(request: express.Request, response: express.Response): void {
     this._logger.verbose("Processing request");
@@ -37,7 +32,7 @@ export class ExpressApplication extends BaseStartableApplication {
   private readonly _host: string;
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
-  private readonly _app: express.Application;
+  private readonly _expressApplication: express.Application;
 
   public constructor(host: string, port: number, routes: IExpressRoute[], applicationName: string, logger: Logger) {
     super(applicationName, logger);
@@ -46,13 +41,24 @@ export class ExpressApplication extends BaseStartableApplication {
     this._port = port;
     this._routes = routes;
 
-    this._app = express();
+    this._expressApplication = express();
+  }
+
+  private Register(route: IExpressRoute) {
+    this._logger.verbose(`Registering path ${route.path}`);
+
+    let router: express.Router = express.Router();
+
+    router.get(route.path, (request, response) => {
+      route.ProcessRequest(request, response);
+    });
+    this._expressApplication.use(router);
   }
 
   protected StartInternal(): void {
     this._logger.verbose(`Listening on host ${this._host} and port ${this._port}`);
 
-    this._routes.forEach((route: IExpressRoute) => route.Register(this._app));
-    this._app.listen(this._port, this._host);
+    this._routes.forEach((route: IExpressRoute) => this.Register(route));
+    this._expressApplication.listen(this._port, this._host);
   }
 }
