@@ -1,8 +1,9 @@
 {
   "name": "bytehappens-data-export",
   "version": "1.0.0",
-  "description": "Export data",
+  "description": "ByteHappens Data Export software",
   "author": "Ewan \"ScottChak\" BURNS",
+  "license": "MIT",
   "engines": {
     "node": "8.12.0"
   },
