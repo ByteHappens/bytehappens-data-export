@@ -20,7 +20,7 @@ export interface IWinstonMongoDbConfiguration extends IWinstonConfiguration {
 export interface IWinstonTelegramConfiguration extends IWinstonConfiguration {
   botToken: string;
   chatId: number;
-  silent: boolean;
+  disableNotification: boolean;
 }
 
 function ValidateConfiguration(configuration: IWinstonConfiguration): void {}
@@ -74,7 +74,7 @@ function InitTelegramTransport(configuration: IWinstonTelegramConfiguration) {
     level: configuration.level,
     token: configuration.botToken,
     chatId: configuration.chatId,
-    silent: configuration.silent
+    disableNotification: configuration.disableNotification
   };
 
   let response: any = new Telegram(transportOptions);

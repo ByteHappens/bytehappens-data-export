@@ -66,13 +66,13 @@ class Initialiser extends BaseInititaliser<IStartableApplication> {
 
       let botToken: string = process.env.LOGGING_TELEGRAM_BOT_TOKEN;
       let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
-      let silent: boolean = process.env.LOGGING_TELEGRAM_SILENT === "true";
+      let disableNotification: boolean = process.env.LOGGING_TELEGRAM_DISABLE_NOTIFICATION === "true";
 
       telegramConfiguration = {
         level: telegramLevel,
         botToken: botToken,
         chatId: chatId,
-        silent: silent
+        disableNotification: disableNotification
       };
     }
 
