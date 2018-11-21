@@ -20,6 +20,7 @@ export interface IWinstonMongoDbConfiguration extends IWinstonConfiguration {
 export interface IWinstonTelegramConfiguration extends IWinstonConfiguration {
   botToken: string;
   chatId: number;
+  silent: boolean;
 }
 
 function ValidateConfiguration(configuration: IWinstonConfiguration): void {}
