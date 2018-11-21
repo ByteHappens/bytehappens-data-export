@@ -73,7 +73,8 @@ function InitTelegramTransport(configuration: IWinstonTelegramConfiguration) {
   let transportOptions = {
     level: configuration.level,
     token: configuration.botToken,
-    chatId: configuration.chatId
+    chatId: configuration.chatId,
+    silent: configuration.silent
   };
 
   let response: any = new Telegram(transportOptions);
