@@ -3,7 +3,8 @@ require("module-alias/register");
 import { Logger } from "winston";
 
 import { BaseInititaliser } from "common/runtime/init";
-import { ITask, BaseTask, IRunnableApplication, TaskRunnerApplication } from "common/runtime/task";
+import { IRunnableApplication } from "common/runtime/application";
+import { ITask, BaseTask, TaskRunnerApplication } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, CreateLoggerAsync } from "common/logging/winston";
 import { IMongoDbConnection, IMongoDbUser, CreateUserAsync } from "common/storage/mongodb";
 
@@ -87,7 +88,7 @@ class Initialiser extends BaseInititaliser<IRunnableApplication> {
         };
 
         let task: ITask = new Task(connection, user, newUser, "Setup", logger);
-        application = new TaskRunnerApplication(task);
+        application = new TaskRunnerApplication(task, "Setup", logger);
       } catch (error) {
         logger.error("Error during setup", { error });
       }

@@ -1,14 +1,6 @@
 import { Logger } from "winston";
 
-import { IApplication } from "common/runtime/application";
-
-export interface ITask {
-  ExecuteAsync(): Promise<void>;
-}
-
-export interface IRunnableApplication extends IApplication {
-  RunAsync(): void;
-}
+import { ITask } from "./interfaces/itask";
 
 export abstract class BaseTask implements ITask {
   protected readonly _taskName: string;
@@ -24,17 +16,5 @@ export abstract class BaseTask implements ITask {
   public async ExecuteAsync(): Promise<void> {
     this._logger.verbose(`Executing ${this._taskName} Task`);
     await this.ExecuteInternalAsync();
-  }
-}
-
-export class TaskRunnerApplication implements IRunnableApplication {
-  private readonly _task: ITask;
-  
-  public constructor(task: ITask) {
-    this._task = task;
-  }
-
-  public async RunAsync(): Promise<void> {
-    await this._task.ExecuteAsync();
   }
 }

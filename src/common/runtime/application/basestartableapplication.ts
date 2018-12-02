@@ -1,20 +1,7 @@
 import { Logger } from "winston";
 
-export interface IApplication {}
-
-export interface IStartableApplication extends IApplication {
-  Start(): void;
-}
-
-export abstract class BaseApplication {
-  protected readonly _applicationName: string;
-  protected readonly _logger: Logger;
-
-  public constructor(applicationName: string, logger: Logger) {
-    this._applicationName = applicationName;
-    this._logger = logger;
-  }
-}
+import { IStartableApplication } from "./interfaces/istartableapplication";
+import { BaseApplication } from "./baseapplication";
 
 export abstract class BaseStartableApplication extends BaseApplication implements IStartableApplication {
   public constructor(applicationName: string, logger: Logger) {
