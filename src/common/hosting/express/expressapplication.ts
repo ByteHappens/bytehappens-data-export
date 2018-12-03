@@ -3,39 +3,7 @@ import * as express from "express";
 
 import { BaseStartableApplication } from "common/runtime/application";
 
-export interface IExpressRoute {
-  GetRouter(): express.Router;
-}
-
-export abstract class BaseExpressRoute implements IExpressRoute {
-  protected readonly _path: string;
-  protected readonly _logger: Logger;
-
-  public constructor(path: string, logger: Logger) {
-    this._path = path;
-    this._logger = logger;
-  }
-
-  public abstract GetRouter(): express.Router;
-}
-
-export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
-  protected abstract ProcessRequestInternal(request: express.Request, response: express.Response);
-
-  public ProcessRequest(request: express.Request, response: express.Response): void {
-    this.ProcessRequestInternal(request, response);
-  }
-
-  public GetRouter(): express.Router {
-    let router: express.Router = express.Router();
-
-    router.get(this._path, (request, response) => {
-      this.ProcessRequest(request, response);
-    });
-
-    return router;
-  }
-}
+import { IExpressRoute } from "./interfaces/iexpressroute";
 
 export class ExpressApplication extends BaseStartableApplication {
   private readonly _host: string;

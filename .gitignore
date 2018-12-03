@@ -66,5 +66,5 @@ typings/
 # Generated files
 .tscache/**/*
 
-dist/**/*.js
-dist/**/*.js.map
+.dist/**/*.js
+.dist/**/*.js.map

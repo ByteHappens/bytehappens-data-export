@@ -1,6 +1,6 @@
 import { Logger } from "winston";
 
-import { IStartableApplication } from "./interfaces/istartableapplication";
+import { IStartableApplication } from "../interfaces/istartableapplication";
 import { BaseApplication } from "./baseapplication";
 
 export abstract class BaseStartableApplication extends BaseApplication implements IStartableApplication {

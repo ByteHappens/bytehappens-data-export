@@ -1,3 +1,3 @@
 export { ITask } from "./interfaces/itask";
-export { BaseTask } from "./basetask";
+export { BaseTask } from "./bases/basetask";
 export { TaskRunnerApplication } from "./taskrunnerapplication";

@@ -1,6 +1,6 @@
 import { Logger } from "winston";
 
-import { ITask } from "./interfaces/itask";
+import { ITask } from "../interfaces/itask";
 
 export abstract class BaseTask implements ITask {
   protected readonly _taskName: string;

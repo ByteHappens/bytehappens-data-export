@@ -1,1 +1,1 @@
-keep-alive: nodemon --exec "node -r dotenv/config dist/apps/worker/keep-alive dotenv_config_path=environment/dev/.env"
+keep-alive: nodemon --exec "node -r dotenv/config .dist/apps/worker/keep-alive dotenv_config_path=environment/dev/.env"

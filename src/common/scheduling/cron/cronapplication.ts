@@ -1,5 +1,5 @@
-import { CronJob } from "cron";
 import { Logger } from "winston";
+import { CronJob } from "cron";
 
 import { BaseStartableApplication } from "common/runtime/application";
 import { ITask } from "common/runtime/task";

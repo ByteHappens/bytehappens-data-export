@@ -1,1 +1,1 @@
-keep-alive: node dist/apps/worker/keep-alive
+keep-alive: node .dist/apps/worker/keep-alive

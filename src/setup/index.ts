@@ -6,7 +6,7 @@ import { BaseInititaliser } from "common/runtime/init";
 import { IRunnableApplication } from "common/runtime/application";
 import { ITask, BaseTask, TaskRunnerApplication } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, CreateLoggerAsync } from "common/logging/winston";
-import { IMongoDbConnection, IMongoDbUser, CreateUserAsync } from "common/storage/mongodb";
+import { IMongoDbConnection, IMongoDbUser, CreateNewUserAsync } from "common/storage/mongodb";
 
 class Task extends BaseTask {
   private readonly _mongoDbConnection: IMongoDbConnection;
@@ -23,7 +23,7 @@ class Task extends BaseTask {
 
   protected async ExecuteInternalAsync(): Promise<void> {
     try {
-      await CreateUserAsync(this._mongoDbConnection, this._mongoDbUser, this._newMongoDbUser);
+      await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._newMongoDbUser);
       this._logger.verbose("User created");
     } catch (error) {
       if (error.name == "MongoNetworkError") {
