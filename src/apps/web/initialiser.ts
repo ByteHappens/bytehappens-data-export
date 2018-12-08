@@ -73,7 +73,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
 
     let routes: IExpressRoute[] = [new DefaultRoute(path, logger), new StatusRoute(satusPath, logger)];
 
-    let application: IStartableApplication = new ExpressApplication(host, port, routes, applicationName, logger);
+    let application: IStartableApplication = new ExpressApplication(host, port, routes, undefined, applicationName, logger);
     return application;
   }
 }
