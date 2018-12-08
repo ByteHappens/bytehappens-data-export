@@ -1,48 +1,14 @@
-require("module-alias/register");
-
 import { Logger } from "winston";
-import * as http from "http";
 
 import { BaseInititaliser } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
-import { BaseTask } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
-import { CronApplication } from "common/scheduling/cron";
+import { ExpressApplication, IExpressRoute, BaseSimpleGetExpressRoute } from "common/hosting/express";
 
-class Task extends BaseTask {
-  private readonly _targetHost: string;
-  private readonly _targetPath: string;
-  private readonly _targetPort: number;
+import { DefaultRoute } from "./routes/defaultroute";
+import { StatusRoute } from "./routes/statusroute";
 
-  public constructor(targetHost: string, targetPath: string, targetPort: number, taskName: string, logger: Logger) {
-    super(taskName, logger);
-
-    this._targetHost = targetHost;
-    this._targetPath = targetPath;
-    this._targetPort = targetPort;
-  }
-
-  protected async ExecuteInternalAsync(): Promise<void> {
-    this._logger.verbose(`Attempting to ping ${this._targetHost} at ${this._targetPath} on port ${this._targetPort}`);
-
-    try {
-      http.get(
-        <http.RequestOptions>{
-          host: this._targetHost,
-          path: this._targetPath,
-          port: this._targetPort
-        },
-        (response: http.IncomingMessage) => {
-          this._logger.verbose(`Result status code: ${response.statusCode}`);
-        }
-      );
-    } catch (error) {
-      this._logger.error("Failed to contact target", { error });
-    }
-  }
-}
-
-class Initialiser extends BaseInititaliser<IStartableApplication> {
+export class Initialiser extends BaseInititaliser<IStartableApplication> {
   protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 
@@ -98,16 +64,16 @@ class Initialiser extends BaseInititaliser<IStartableApplication> {
 
     let logger: Logger = await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
 
-    let applicationName: string = process.env.KEEPALIVE_APP_NAME;
-    let targetHost: string = process.env.KEEPALIVE_TARGET_HOST;
-    let targetPath: string = process.env.KEEPALIVE_TARGET_PATH;
-    let targetPort: number = parseInt(process.env.KEEPALIVE_TARGET_PORT || "80");
-    let cronTime: string = process.env.KEEPALIVE_CRONTIME;
+    let applicationName: string = process.env.WEB_APP_NAME;
+    let host: string = process.env.WEB_HOST || "0.0.0.0";
+    let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
-    let task = new Task(targetHost, targetPath, targetPort, applicationName, logger);
-    return new CronApplication(task, cronTime, applicationName, logger);
+    let path: string = process.env.WEB_PATH || "/";
+    let satusPath: string = process.env.WEB_STATUS_PATH;
+
+    let routes: IExpressRoute[] = [new DefaultRoute(path, logger), new StatusRoute(satusPath, logger)];
+
+    let application: IStartableApplication = new ExpressApplication(host, port, routes, applicationName, logger);
+    return application;
   }
 }
-
-let initialiser: Initialiser = new Initialiser();
-initialiser.InitialiseAsync().then((application: IStartableApplication) => application.Start());

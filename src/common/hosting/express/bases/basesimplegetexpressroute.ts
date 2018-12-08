@@ -1,4 +1,3 @@
-import { Logger } from "winston";
 import { Request, Response, Router } from "express";
 
 import { BaseExpressRoute } from "./baseexpressroute";

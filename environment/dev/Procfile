@@ -1,2 +1,0 @@
-web: nodemon --exec "node -r dotenv/config .dist/apps/web dotenv_config_path=environment/dev/.env"
-worker: nf start --procfile ./environment/dev/Procfiles/Procfile.worker
