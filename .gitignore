@@ -64,7 +64,6 @@ typings/
 !environment/dev/*
 
 # Generated files
-.tscache/**/*
+.tscache/
 
-.dist/**/*.js
-.dist/**/*.js.map
+.dist/
