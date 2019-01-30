@@ -1,15 +1,15 @@
-import { Logger } from "winston";
-
 import { Request, Response } from "express";
 import { Parser } from "json2csv";
 
 import { BaseSimpleGetExpressRoute } from "common/hosting/express";
 
 export class DataExportRoute extends BaseSimpleGetExpressRoute {
-  private GetContent(): string {
-    let fields: string[] = ["Sku", "Title", "Short Description", "Long Description", "Price", "In Stock", "Stock", "Delivery (days)"];
-    let delimiter: string = ";";
-    let data: any[] = [
+  private GetFields(): string[] {
+    return ["Sku", "Title", "Short Description", "Long Description", "Price", "In Stock", "Stock", "Delivery (days)"];
+  }
+
+  private GetData(): any[] {
+    return [
       {
         Sku: "EBU_001",
         Title: "ByteHappens T Shirt (Green)",
@@ -111,16 +111,28 @@ export class DataExportRoute extends BaseSimpleGetExpressRoute {
         "Delivery (days)": 99
       }
     ];
+  }
 
-    let options: any = { fields, delimiter };
+  private GetExportConfiguration(): any {
+    return {
+      delimiter: ";"
+    };
+  }
+
+  private GetContent(fields: string[], data: any[], exportConfiguration: any): string {
+    let options: any = { fields, delimiter: exportConfiguration.delimiter };
     let parser: any = new Parser(options);
     return parser.parse(data);
   }
+
   protected ProcessRequestInternal(request: Request, response: Response): void {
     this._logger.info("Exporting data to CSV");
 
     try {
-      let content: string = this.GetContent();
+      let fields: string[] = this.GetFields();
+      let data: any[] = this.GetData();
+      let exportConfiguration: any = this.GetExportConfiguration();
+      let content: string = this.GetContent(fields, data, exportConfiguration);
 
       response.status(200);
       response.type("csv");
