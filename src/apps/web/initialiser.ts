@@ -51,13 +51,13 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     if (useTelegram) {
       let telegramLevel: string = process.env.LOGGING_TELEGRAM_LEVEL;
 
-      let botToken: string = process.env.LOGGING_TELEGRAM_BOT_TOKEN;
+      let token: string = process.env.LOGGING_TELEGRAM_TOKEN;
       let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
       let disableNotification: boolean = process.env.LOGGING_TELEGRAM_DISABLE_NOTIFICATION === "true";
 
       telegramConfiguration = {
         level: telegramLevel,
-        botToken: botToken,
+        token: token,
         chatId: chatId,
         disableNotification: disableNotification
       };

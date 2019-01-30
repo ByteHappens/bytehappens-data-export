@@ -45,7 +45,7 @@ export function InitTelegramTransport(configuration: IWinstonTelegramConfigurati
 
   let transportOptions = {
     level: configuration.level,
-    token: configuration.botToken,
+    token: configuration.token,
     chatId: configuration.chatId,
     disableNotification: configuration.disableNotification
   };

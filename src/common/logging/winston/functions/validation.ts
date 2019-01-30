@@ -19,4 +19,8 @@ export function ValidateMongoDbConfiguration(configuration: IWinstonMongoDbConfi
 
 export function ValidateTelegramConfiguration(configuration: IWinstonTelegramConfiguration): void {
   ValidateConfiguration(configuration);
+  
+  if (configuration.token === undefined || configuration.chatId === undefined) {
+    throw new Error("Invalid MongoDb User detected");
+  }
 }
