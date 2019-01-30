@@ -1,6 +1,6 @@
 import { Logger, LoggerOptions, createLogger, format, transports } from "winston";
 let MongoDB = require("winston-mongodb").MongoDB;
-let Telegram = require("winston-telegram").Telegram;
+let Telegram = require("winston-telegram");
 
 import { MongoClient } from "mongodb";
 
