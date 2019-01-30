@@ -10,14 +10,16 @@ import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
 export class Initialiser extends BaseInititaliser<IStartableApplication> {
-  protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
+  private LoadWinstonConsoleConfiguration(): IWinstonConsoleConfiguration {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 
-    let consoleConfiguration: IWinstonConsoleConfiguration = {
+    return {
       level: consoleLevel
     };
+  }
 
-    let mongoDbConfiguration: IWinstonMongoDbConfiguration = undefined;
+  private LoadWinstonMongoDbConfiguration(): IWinstonMongoDbConfiguration {
+    let response: IWinstonMongoDbConfiguration = undefined;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
     if (useMongoDb) {
@@ -28,9 +30,9 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
       let username: string = process.env.LOGGING_MONGODB_USERNAME;
       let password: string = process.env.LOGGING_MONGODB_PASSWORD;
       let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-      let collection: string = process.env.PINGLISTENER_APP_NAME;
+      let collection: string = process.env.WEB_APP_NAME;
 
-      mongoDbConfiguration = {
+      response = {
         level: mongoDbLevel,
         connection: {
           host: host,
@@ -45,7 +47,11 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
       };
     }
 
-    let telegramConfiguration: IWinstonTelegramConfiguration = undefined;
+    return response;
+  }
+
+  private LoadWinstonTelegramConfiguration(): IWinstonTelegramConfiguration {
+    let response: IWinstonTelegramConfiguration = undefined;
 
     let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
     if (useTelegram) {
@@ -55,7 +61,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
       let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
       let disableNotification: boolean = process.env.LOGGING_TELEGRAM_DISABLE_NOTIFICATION === "true";
 
-      telegramConfiguration = {
+      response = {
         level: telegramLevel,
         token: token,
         chatId: chatId,
@@ -63,15 +69,27 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
       };
     }
 
-    let logger: Logger = await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
+    return response;
+  }
+
+  private async GetLoggerAsync(): Promise<Logger> {
+    let consoleConfiguration: IWinstonConsoleConfiguration = this.LoadWinstonConsoleConfiguration();
+    let mongoDbConfiguration: IWinstonMongoDbConfiguration = this.LoadWinstonMongoDbConfiguration();
+    let telegramConfiguration: IWinstonTelegramConfiguration = this.LoadWinstonTelegramConfiguration();
+
+    return await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
+  }
+
+  protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
+    let logger: Logger = await this.GetLoggerAsync();
 
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
     let defaultPath: string = process.env.WEB_DEFAULT_PATH || "/";
-    let satusPath: string = process.env.WEB_STATUS_PATH;
+    let statusPath: string = process.env.WEB_STATUS_PATH;
 
-    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(satusPath, logger), new DataExportRoute("/products.csv", logger)];
+    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(statusPath, logger), new DataExportRoute("/products.csv", logger)];
 
     let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, logger);
     return application;

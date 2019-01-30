@@ -1,17 +1,19 @@
 import { Logger } from "winston";
 
-import { IWinstonConsoleConfiguration } from "../interfaces/iwinstonconsoleconfiguration";
-import { IWinstonMongoDbConfiguration } from "../interfaces/iwinstonmongodbconfiguration";
-import { IWinstonTelegramConfiguration } from "../interfaces/iwinstontelegramconfiguration";
+import { IWinstonConsoleConfiguration } from "./console/interfaces/iwinstonconsoleconfiguration";
+import { IWinstonMongoDbConfiguration } from "./mongodb/interfaces/iwinstonmongodbconfiguration";
+import { IWinstonTelegramConfiguration } from "./telegram/interfaces/iwinstontelegramconfiguration";
 
-import { InitDefaultLogger, InitMongoTransportAsync, InitTelegramTransport } from "./init";
+import { InitConsoleLogger } from "./console/init";
+import { InitMongoTransportAsync } from "./mongodb/init";
+import { InitTelegramTransport } from "./telegram/init";
 
 export async function CreateLoggerAsync(
   consoleConfiguration: IWinstonConsoleConfiguration,
   mongoDbConfiguration?: IWinstonMongoDbConfiguration,
   telegramConnection?: IWinstonTelegramConfiguration
 ): Promise<Logger> {
-  let response: Logger = InitDefaultLogger(consoleConfiguration);
+  let response: Logger = InitConsoleLogger(consoleConfiguration);
 
   if (mongoDbConfiguration !== undefined) {
     try {

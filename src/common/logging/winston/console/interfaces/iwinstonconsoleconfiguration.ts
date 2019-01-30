@@ -1,3 +1,3 @@
-import { IWinstonConfiguration } from "./iwinstonconfiguration";
+import { IWinstonConfiguration } from "../../interfaces/iwinstonconfiguration";
 
 export interface IWinstonConsoleConfiguration extends IWinstonConfiguration {}
