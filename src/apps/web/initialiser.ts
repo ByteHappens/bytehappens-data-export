@@ -68,10 +68,10 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     let host: string = process.env.WEB_HOST || "0.0.0.0";
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
-    let path: string = process.env.WEB_PATH || "/";
+    let defaultPath: string = process.env.WEB_DEFAULT_PATH || "/";
     let satusPath: string = process.env.WEB_STATUS_PATH;
 
-    let routes: IExpressRoute[] = [new DefaultRoute(path, logger), new StatusRoute(satusPath, logger)];
+    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(satusPath, logger)];
 
     let application: IStartableApplication = new ExpressApplication(host, port, routes, undefined, applicationName, logger);
     return application;
