@@ -7,17 +7,15 @@ import { IExpressRoute } from "./interfaces/iexpressroute";
 import { IErrorHandler } from "./interfaces/ierrorhandler";
 
 export class ExpressApplication extends BaseStartableApplication {
-  private readonly _host: string;
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _errorHandlers: IErrorHandler[];
 
   private readonly _expressApplication: express.Application;
 
-  public constructor(host: string, port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, logger: Logger) {
+  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, logger: Logger) {
     super(applicationName, logger);
 
-    this._host = host;
     this._port = port;
     this._routes = routes;
     this._errorHandlers = errorHandlers;
@@ -38,7 +36,7 @@ export class ExpressApplication extends BaseStartableApplication {
   }
 
   protected StartInternal(): void {
-    this._logger.verbose(`Listening on host ${this._host} and port ${this._port}`);
+    this._logger.verbose(`Listening on port ${this._port}`);
 
     if (this._routes !== undefined) {
       this._routes.forEach((route: IExpressRoute) => this.Register(route));
@@ -57,6 +55,6 @@ export class ExpressApplication extends BaseStartableApplication {
       this.DefaultProcessError(error, request, response, next);
     });
 
-    this._expressApplication.listen(this._port, this._host);
+    this._expressApplication.listen(this._port);
   }
 }

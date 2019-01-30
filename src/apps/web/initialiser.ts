@@ -66,7 +66,6 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     let logger: Logger = await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
 
     let applicationName: string = process.env.WEB_APP_NAME;
-    let host: string = process.env.WEB_HOST || "0.0.0.0";
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
     let defaultPath: string = process.env.WEB_DEFAULT_PATH || "/";
@@ -74,7 +73,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
 
     let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(satusPath, logger), new DataExportRoute("/products.csv", logger)];
 
-    let application: IStartableApplication = new ExpressApplication(host, port, routes, undefined, applicationName, logger);
+    let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, logger);
     return application;
   }
 }
