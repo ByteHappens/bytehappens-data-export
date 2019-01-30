@@ -3,10 +3,11 @@ import { Logger } from "winston";
 import { BaseInititaliser } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
-import { ExpressApplication, IExpressRoute, BaseSimpleGetExpressRoute } from "common/hosting/express";
+import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
 import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
+import { DataExportRoute } from "./routes/dataexportroute";
 
 export class Initialiser extends BaseInititaliser<IStartableApplication> {
   protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
@@ -71,7 +72,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     let defaultPath: string = process.env.WEB_DEFAULT_PATH || "/";
     let satusPath: string = process.env.WEB_STATUS_PATH;
 
-    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(satusPath, logger)];
+    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(satusPath, logger), new DataExportRoute("/products.csv", logger)];
 
     let application: IStartableApplication = new ExpressApplication(host, port, routes, undefined, applicationName, logger);
     return application;

@@ -11,7 +11,7 @@ export abstract class BaseRunnableApplication extends BaseApplication implements
   protected abstract RunInternalAsync(): Promise<void>;
 
   public async RunAsync(): Promise<void> {
-    this._logger.info(`Running ${this._applicationName} App`);
+    this._logger.verbose(`Running ${this._applicationName} App`);
     await this.RunInternalAsync();
   }
 }

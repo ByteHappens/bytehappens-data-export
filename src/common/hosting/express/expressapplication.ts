@@ -30,8 +30,9 @@ export class ExpressApplication extends BaseStartableApplication {
     this._expressApplication.use(router);
   }
 
-  private defaultProcessError(error: any, request: express.Request, response: express.Response, next: express.NextFunction): void {
+  private DefaultProcessError(error: any, request: express.Request, response: express.Response, next: express.NextFunction): void {
     this._logger.error("Something broke!", { error });
+
     response.status(500);
     response.send("Something broke!");
   }
@@ -53,7 +54,7 @@ export class ExpressApplication extends BaseStartableApplication {
     }
 
     this._expressApplication.use((error: any, request: express.Request, response: express.Response, next: express.NextFunction) => {
-      this.defaultProcessError(error, request, response, next);
+      this.DefaultProcessError(error, request, response, next);
     });
 
     this._expressApplication.listen(this._port, this._host);

@@ -11,7 +11,7 @@ export abstract class BaseStartableApplication extends BaseApplication implement
   protected abstract StartInternal(): void;
 
   public Start(): void {
-    this._logger.info(`Starting ${this._applicationName} App`);
+    this._logger.verbose(`Starting ${this._applicationName} App`);
     this.StartInternal();
   }
 }
