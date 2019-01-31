@@ -39,9 +39,7 @@ export class Initialiser extends BaseInititaliser<IRunnableApplication> {
 
         let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
         let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
-
         let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-
         let newUser: IMongoDbUser = {
           username: newUsername,
           password: newPassword,

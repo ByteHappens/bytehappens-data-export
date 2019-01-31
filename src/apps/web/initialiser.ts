@@ -25,7 +25,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     if (useMongoDb) {
       let mongoDbLevel: string = process.env.LOGGING_MONGODB_LEVEL;
 
-      let host: string = process.env.MONGODB_HOST;
+      let host: string = process.env.LOGGING_MONGODB_HOST;
       let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
       let username: string = process.env.LOGGING_MONGODB_USERNAME;
       let password: string = process.env.LOGGING_MONGODB_PASSWORD;
