@@ -45,5 +45,5 @@ export async function CreateNewUserAsync(mongoDbConfiguration: IMongoDbConnectio
   };
 
   let db: Db = client.db(databaseName);
-  db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
+  await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
 }

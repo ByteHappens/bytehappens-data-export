@@ -6,33 +6,33 @@ import { IMongoDbConnection, IMongoDbUser, CreateNewUserAsync } from "common/sto
 export class Task extends BaseTask {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
-  private readonly _newMongoDbUser: IMongoDbUser;
+  private readonly _mongoDbNewUser: IMongoDbUser;
 
   public constructor(mongoDbConnection: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser, taskName: string, logger: Logger) {
     super(taskName, logger);
 
     this._mongoDbConnection = mongoDbConnection;
     this._mongoDbUser = mongoDbUser;
-    this._newMongoDbUser = newMongoDbUser;
+    this._mongoDbNewUser = newMongoDbUser;
   }
 
   protected async ExecuteInternalAsync(): Promise<void> {
     try {
-      await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._newMongoDbUser);
-      this._logger.verbose("User created");
+      await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
+      this._logger.verbose("User created", {connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser});
     } catch (error) {
       if (error.name == "MongoNetworkError") {
         this._logger.error("Failed to create user: Server unreachable", {
-          mongoDbConnection: this._mongoDbConnection,
-          mongoDbUser: this._mongoDbUser,
-          newMongoDbUser: this._newMongoDbUser
+          connection: this._mongoDbConnection,
+          user: this._mongoDbUser,
+          newUser: this._mongoDbNewUser
         });
       } else {
         this._logger.error("Failed to create user", {
           error: error,
-          mongoDbConnection: this._mongoDbConnection,
-          mongoDbUser: this._mongoDbUser,
-          newMongoDbUser: this._newMongoDbUser
+          connection: this._mongoDbConnection,
+          user: this._mongoDbUser,
+          newUser: this._mongoDbNewUser
         });
       }
     }
