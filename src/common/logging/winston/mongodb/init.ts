@@ -1,6 +1,5 @@
-let MongoDB = require("winston-mongodb").MongoDB;
-
 import { MongoClient } from "mongodb";
+let MongoDB = require("winston-mongodb").MongoDB;
 
 import { CreateMongoClientAsync } from "common/storage/mongodb";
 
