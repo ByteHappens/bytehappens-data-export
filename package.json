@@ -12,9 +12,8 @@
     "start": "node .dist/apps/web",
     "build": "grunt build",
     "watch": "grunt watch",
-    "setup": "node -r dotenv/config .dist/setup dotenv_config_path=environment/dev/.env",
     "debug": "nodemon --exec \"node -r dotenv/config .dist/apps/web dotenv_config_path=environment/dev/.env\" --watch .dist/apps/web environment/dev",
-    "dev": "npm run build && npm run setup && concurrently \"npm run debug\" \"npm run watch\"",
+    "dev": "npm run build && concurrently \"npm run debug\" \"npm run watch\"",
     "tsc": "tsc"
   },
   "dependencies": {
