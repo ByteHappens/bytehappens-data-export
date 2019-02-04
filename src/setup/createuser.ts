@@ -3,7 +3,7 @@ import { Logger } from "winston";
 import { BaseTask } from "common/runtime/task";
 import { IMongoDbConnection, IMongoDbUser, CreateNewUserAsync } from "common/storage/mongodb";
 
-export class Task extends BaseTask {
+export class CreateUser extends BaseTask {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _mongoDbNewUser: IMongoDbUser;

@@ -1,7 +1,10 @@
 import { Logger } from "winston";
 
 import { BaseInititaliser } from "common/runtime/init";
+
 import { IStartableApplication } from "common/runtime/application";
+import { Start } from "common/runtime/task";
+
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
@@ -9,7 +12,7 @@ import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
-export class Initialiser extends BaseInititaliser<IStartableApplication> {
+export class Initialiser extends BaseInititaliser<Start> {
   private LoadWinstonConsoleConfiguration(): IWinstonConsoleConfiguration {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 
@@ -80,7 +83,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     return await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
   }
 
-  protected async InitialiseInternalAsync(): Promise<IStartableApplication> {
+  protected async InitialiseInternalAsync(): Promise<Start> {
     let logger: Logger = await this.GetLoggerAsync();
 
     let applicationName: string = process.env.WEB_APP_NAME;
@@ -92,6 +95,7 @@ export class Initialiser extends BaseInititaliser<IStartableApplication> {
     let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(statusPath, logger), new DataExportRoute("/products.csv", logger)];
 
     let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, logger);
-    return application;
+    let task: Start = new Start(application, `Start${applicationName}`, logger);
+    return task;
   }
 }

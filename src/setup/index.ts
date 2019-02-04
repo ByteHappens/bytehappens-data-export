@@ -1,11 +1,11 @@
 require("module-alias/register");
 
-import { IRunnableApplication } from "common/runtime/application";
+import { ITask } from "common/runtime/task";
 import { Initialiser } from "./initialiser";
 
 let initialiser: Initialiser = new Initialiser();
-initialiser.InitialiseAsync().then(async (application: IRunnableApplication) => {
-  if (application != undefined) {
-    await application.RunAsync();
+initialiser.InitialiseAsync().then(async (task: ITask) => {
+  if (task != undefined) {
+    await task.ExecuteAsync();
   }
 });

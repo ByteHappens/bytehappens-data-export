@@ -1,8 +1,8 @@
 require("module-alias/register");
 
-import { IStartableApplication } from "common/runtime/application";
+import { ITask } from "common/runtime/task";
 
 import { Initialiser } from "./initialiser";
 
 let initialser = new Initialiser();
-initialser.InitialiseAsync().then((application: IStartableApplication) => application.Start());
+initialser.InitialiseAsync().then(async (task: ITask) => await task.ExecuteAsync());

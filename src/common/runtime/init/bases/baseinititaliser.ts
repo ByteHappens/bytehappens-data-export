@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 
-import { IApplication } from "common/runtime/application";
+import { ITask } from "common/runtime/task";
 
-export abstract class BaseInititaliser<T extends IApplication> {
+export abstract class BaseInititaliser<T extends ITask> {
   private InitialiseEnvironment(): void {
     if (process.env.NODE_ENV !== "production") {
       config();
@@ -14,7 +14,7 @@ export abstract class BaseInititaliser<T extends IApplication> {
   public async InitialiseAsync(): Promise<T> {
     this.InitialiseEnvironment();
     
-    let application: T = await this.InitialiseInternalAsync();
-    return application;
+    let task: T = await this.InitialiseInternalAsync();
+    return task;
   }
 }
