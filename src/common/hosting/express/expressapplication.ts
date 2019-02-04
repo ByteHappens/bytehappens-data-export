@@ -37,7 +37,7 @@ export class ExpressApplication extends BaseStartableApplication {
     response.send("Something broke!");
   }
 
-  protected StartInternal(): void {
+  protected async StartInternalAsync(): Promise<void> {
     if (this._logger) {
       this._logger.verbose(`Listening on port ${this._port}`);
     }

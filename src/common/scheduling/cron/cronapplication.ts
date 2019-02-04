@@ -17,7 +17,7 @@ export class CronApplication extends BaseStartableApplication {
     this._job = new CronJob(this._cronTime, async () => await this._task.ExecuteAsync());
   }
 
-  protected StartInternal(): void {
+  protected async StartInternalAsync(): Promise<void> {
     if (this._logger) {
       this._logger.verbose(`Running task with schedule ${this._cronTime}`);
     }

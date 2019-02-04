@@ -14,7 +14,7 @@ export class Start extends BaseTask {
   }
 
   protected async ExecuteInternalAsync(): Promise<boolean> {
-    this._application.Start();
+    await this._application.StartAsync();
 
     return true;
   }
