@@ -2,7 +2,7 @@ import { Logger } from "winston";
 
 import { BaseInititaliser } from "common/runtime/init";
 import { IRunnableApplication } from "common/runtime/application";
-import { ITask, TaskRunnerApplication } from "common/runtime/task";
+import { ITask, TaskRunner } from "common/runtime/task";
 import { IWinstonConsoleConfiguration, CreateLoggerAsync } from "common/logging/winston";
 import { IMongoDbConnection, IMongoDbUser } from "common/storage/mongodb";
 
@@ -47,7 +47,7 @@ export class Initialiser extends BaseInititaliser<IRunnableApplication> {
         };
 
         let task: ITask = new Task(connection, user, newUser, "Setup", logger);
-        application = new TaskRunnerApplication(task, "Setup", logger);
+        application = new TaskRunner(task, "Setup", logger);
       } catch (error) {
         logger.error("Error during setup", { error });
       }
