@@ -7,8 +7,8 @@ import { ITask } from "../interfaces/itask";
 export class TaskRunner extends BaseRunnableApplication {
   private readonly _task: ITask;
 
-  public constructor(task: ITask, applicationName: string, logger: Logger = undefined) {
-    super(applicationName, logger);
+  public constructor(task: ITask, applicationName: string, initLogger: Promise<Logger>) {
+    super(applicationName, initLogger);
     this._task = task;
   }
 

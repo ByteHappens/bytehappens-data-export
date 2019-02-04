@@ -3,8 +3,8 @@ import { Logger } from "winston";
 import { BaseTask } from "../bases/basetask";
 
 export class Exit extends BaseTask {
-  public constructor(taskName: string, logger: Logger = undefined) {
-    super(taskName, logger);
+  public constructor(taskName: string, initLogger: Promise<Logger>) {
+    super(taskName, initLogger);
   }
 
   protected async ExecuteInternalAsync(): Promise<boolean> {

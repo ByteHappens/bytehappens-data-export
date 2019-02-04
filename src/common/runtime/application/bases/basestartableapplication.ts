@@ -4,17 +4,19 @@ import { IStartableApplication } from "../interfaces/istartableapplication";
 import { BaseApplication } from "./baseapplication";
 
 export abstract class BaseStartableApplication extends BaseApplication implements IStartableApplication {
-  public constructor(applicationName: string, logger: Logger = undefined) {
-    super(applicationName, logger);
+  public constructor(applicationName: string, initLogger: Promise<Logger>) {
+    super(applicationName, initLogger);
   }
 
-  protected abstract StartInternal(): void;
+  protected abstract StartInternalAsync(): Promise<void>;
 
-  public Start(): void {
+  public async StartAsync(): Promise<void> {
+    await this.InitLoggerAsync();
+
     if (this._logger) {
       this._logger.verbose(`Starting ${this._applicationName} App`);
     }
 
-    this.StartInternal();
+    await this.StartInternalAsync();
   }
 }

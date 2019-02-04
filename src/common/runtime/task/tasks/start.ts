@@ -7,8 +7,8 @@ import { BaseTask } from "../bases/basetask";
 export class Start extends BaseTask {
   private _application: IStartableApplication;
 
-  public constructor(application: IStartableApplication, taskName: string, logger: Logger = undefined) {
-    super(taskName, logger);
+  public constructor(application: IStartableApplication, taskName: string, initLogger: Promise<Logger>) {
+    super(taskName, initLogger);
 
     this._application = application;
   }

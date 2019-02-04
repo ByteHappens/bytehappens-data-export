@@ -13,8 +13,8 @@ export class ExpressApplication extends BaseStartableApplication {
 
   private readonly _expressApplication: express.Application;
 
-  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, logger: Logger = undefined) {
-    super(applicationName, logger);
+  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, initLogger: Promise<Logger>) {
+    super(applicationName, initLogger);
 
     this._port = port;
     this._routes = routes;

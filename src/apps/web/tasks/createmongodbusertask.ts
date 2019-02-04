@@ -14,9 +14,9 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     newMongoDbUser: IMongoDbUser,
     onSuccess: Start,
     taskName: string,
-    logger: Logger = undefined
+    initLogger: Promise<Logger>
   ) {
-    super(onSuccess, new Exit(`Exit${taskName}`, logger), taskName, logger);
+    super(onSuccess, new Exit(`Exit${taskName}`, initLogger), taskName, initLogger);
 
     this._mongoDbConnection = mongoDbConnection;
     this._mongoDbUser = mongoDbUser;

@@ -3,17 +3,25 @@ import { Logger } from "winston";
 import { ITask } from "../interfaces/itask";
 
 export abstract class BaseTask implements ITask {
-  protected readonly _taskName: string;
-  protected readonly _logger: Logger;
+  private readonly _initLogger: Promise<Logger>;
 
-  public constructor(taskName: string, logger: Logger = undefined) {
+  protected readonly _taskName: string;
+  protected _logger: Logger;
+
+  public constructor(taskName: string, initLogger: Promise<Logger>) {
     this._taskName = taskName;
-    this._logger = logger;
+    this._initLogger = initLogger;
+  }
+
+  public async InitLoggerAsync(): Promise<void> {
+    this._logger = await this._initLogger;
   }
 
   protected abstract ExecuteInternalAsync(): Promise<boolean>;
 
   public async ExecuteAsync(): Promise<boolean> {
+    await this.InitLoggerAsync();
+
     if (this._logger) {
       this._logger.verbose(`Executing ${this._taskName} Task`);
     }

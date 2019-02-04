@@ -88,7 +88,7 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     return await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
   }
 
-  private async GetCreateMongoDbLogUserTaskAsync(onSuccess: Start): Promise<ITaskChain> {
+  private GetCreateMongoDbLogUserTask(onSuccess: Start): ITaskChain {
     let response: ITaskChain;
 
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
@@ -97,7 +97,7 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
       level: consoleLevel
     };
 
-    let logger: Logger = await CreateLoggerAsync(consoleConfiguration);
+    let initLogger: Promise<Logger> = CreateLoggerAsync(consoleConfiguration);
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
     if (useMongoDb) {
@@ -124,15 +124,15 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
         databaseName: databaseName
       };
 
-      response = new CreateMongoDbLogUserTask(connection, user, newUser, onSuccess, "CreateMongoDbLogUser", logger);
+      response = new CreateMongoDbLogUserTask(connection, user, newUser, onSuccess, "CreateMongoDbLogUser", initLogger);
     } else {
     }
 
     return response;
   }
 
-  private async GetServerTaskAsync(): Promise<Start> {
-    let logger: Logger = await this.GetLoggerAsync();
+  private GetServerTask(): Start {
+    let initLogger: Promise<Logger> = this.GetLoggerAsync();
 
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
@@ -140,16 +140,20 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     let defaultPath: string = process.env.WEB_DEFAULT_PATH || "/";
     let statusPath: string = process.env.WEB_STATUS_PATH;
 
-    let routes: IExpressRoute[] = [new DefaultRoute(defaultPath, logger), new StatusRoute(statusPath, logger), new DataExportRoute("/products.csv", logger)];
+    let routes: IExpressRoute[] = [
+      new DefaultRoute(defaultPath, initLogger),
+      new StatusRoute(statusPath, initLogger),
+      new DataExportRoute("/products.csv", initLogger)
+    ];
 
-    let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, logger);
-    let task: Start = new Start(application, `Start${applicationName}`, logger);
+    let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, initLogger);
+    let task: Start = new Start(application, `Start${applicationName}`, initLogger);
     return task;
   }
 
   protected async InitialiseInternalAsync(): Promise<ITaskChain> {
-    let serverTask: Start = await this.GetServerTaskAsync();
-    let createMongoDbLogUserTask = await this.GetCreateMongoDbLogUserTaskAsync(serverTask);
+    let serverTask: Start = this.GetServerTask();
+    let createMongoDbLogUserTask = this.GetCreateMongoDbLogUserTask(serverTask);
     return createMongoDbLogUserTask;
   }
 }
