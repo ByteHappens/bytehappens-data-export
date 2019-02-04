@@ -16,7 +16,7 @@ export class Task extends BaseTask {
     this._mongoDbNewUser = newMongoDbUser;
   }
 
-  protected async ExecuteInternalAsync(): Promise<void> {
+  protected async ExecuteInternalAsync(): Promise<boolean> {
     try {
       await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
       this._logger.verbose("User created", {connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser});
@@ -39,5 +39,6 @@ export class Task extends BaseTask {
 
     this._logger.verbose("Exiting");
     process.exit();
+    return true;
   }
 }

@@ -1,3 +1,3 @@
 export interface ITask {
-  ExecuteAsync(): Promise<void>;
+  ExecuteAsync(): Promise<boolean>;
 }

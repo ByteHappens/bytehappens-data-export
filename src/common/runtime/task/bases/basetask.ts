@@ -11,10 +11,10 @@ export abstract class BaseTask implements ITask {
     this._logger = logger;
   }
 
-  protected abstract ExecuteInternalAsync(): Promise<void>;
+  protected abstract ExecuteInternalAsync(): Promise<boolean>;
 
-  public async ExecuteAsync(): Promise<void> {
+  public async ExecuteAsync(): Promise<boolean> {
     this._logger.verbose(`Executing ${this._taskName} Task`);
-    await this.ExecuteInternalAsync();
+    return await this.ExecuteInternalAsync();
   }
 }
