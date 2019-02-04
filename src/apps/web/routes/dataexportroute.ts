@@ -126,20 +126,17 @@ export class DataExportRoute extends BaseSimpleGetExpressRoute {
   }
 
   protected ProcessRequestInternal(request: Request, response: Response): void {
-    this._logger.info("Exporting data to CSV");
-
-    try {
-      let fields: string[] = this.GetFields();
-      let data: any[] = this.GetData();
-      let exportConfiguration: any = this.GetExportConfiguration();
-      let content: string = this.GetContent(fields, data, exportConfiguration);
-
-      response.status(200);
-      response.type("csv");
-      response.send(content);
-    } catch (error) {
-      this._logger.error("HMMM", { error });
-      throw error;
+    if (this._logger) {
+      this._logger.info("Exporting data to CSV");
     }
+
+    let fields: string[] = this.GetFields();
+    let data: any[] = this.GetData();
+    let exportConfiguration: any = this.GetExportConfiguration();
+    let content: string = this.GetContent(fields, data, exportConfiguration);
+
+    response.status(200);
+    response.type("csv");
+    response.send(content);
   }
 }

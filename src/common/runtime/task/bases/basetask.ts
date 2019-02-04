@@ -6,7 +6,7 @@ export abstract class BaseTask implements ITask {
   protected readonly _taskName: string;
   protected readonly _logger: Logger;
 
-  public constructor(taskName: string, logger: Logger) {
+  public constructor(taskName: string, logger: Logger = undefined) {
     this._taskName = taskName;
     this._logger = logger;
   }
@@ -14,7 +14,10 @@ export abstract class BaseTask implements ITask {
   protected abstract ExecuteInternalAsync(): Promise<boolean>;
 
   public async ExecuteAsync(): Promise<boolean> {
-    this._logger.verbose(`Executing ${this._taskName} Task`);
+    if (this._logger) {
+      this._logger.verbose(`Executing ${this._taskName} Task`);
+    }
+
     return await this.ExecuteInternalAsync();
   }
 }

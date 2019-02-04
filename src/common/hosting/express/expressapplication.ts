@@ -13,7 +13,7 @@ export class ExpressApplication extends BaseStartableApplication {
 
   private readonly _expressApplication: express.Application;
 
-  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, logger: Logger) {
+  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, logger: Logger = undefined) {
     super(applicationName, logger);
 
     this._port = port;
@@ -29,14 +29,18 @@ export class ExpressApplication extends BaseStartableApplication {
   }
 
   private DefaultProcessError(error: any, request: express.Request, response: express.Response, next: express.NextFunction): void {
-    this._logger.error("Something broke!", { error });
+    if (this._logger) {
+      this._logger.error("Something broke!", { error });
+    }
 
     response.status(500);
     response.send("Something broke!");
   }
 
   protected StartInternal(): void {
-    this._logger.verbose(`Listening on port ${this._port}`);
+    if (this._logger) {
+      this._logger.verbose(`Listening on port ${this._port}`);
+    }
 
     if (this._routes !== undefined) {
       this._routes.forEach((route: IExpressRoute) => this.Register(route));

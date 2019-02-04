@@ -7,7 +7,7 @@ export abstract class BaseExpressRoute implements IExpressRoute {
   protected readonly _path: string;
   protected readonly _logger: Logger;
 
-  public constructor(path: string, logger: Logger) {
+  public constructor(path: string, logger: Logger = undefined) {
     this._path = path;
     this._logger = logger;
   }

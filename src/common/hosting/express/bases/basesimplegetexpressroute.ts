@@ -10,9 +10,11 @@ export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
   }
 
   public GetRouter(): Router {
-    this._logger.verbose(`Creating router on ${this._path}`);
-    let router: Router = Router();
+    if (this._logger) {
+      this._logger.verbose(`Creating router on ${this._path}`);
+    }
 
+    let router: Router = Router();
     router.get(this._path, (request, response) => {
       this.ProcessRequest(request, response);
     });

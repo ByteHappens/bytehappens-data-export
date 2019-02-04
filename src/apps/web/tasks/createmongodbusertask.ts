@@ -14,7 +14,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     newMongoDbUser: IMongoDbUser,
     onSuccess: Start,
     taskName: string,
-    logger: Logger
+    logger: Logger = undefined
   ) {
     super(onSuccess, new Exit(`Exit${taskName}`, logger), taskName, logger);
 
@@ -30,21 +30,27 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
       await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
       response = true;
 
-      this._logger.verbose("User created", { connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser });
+      if (this._logger) {
+        this._logger.verbose("User created", { connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser });
+      }
     } catch (error) {
       if (error.name == "MongoNetworkError") {
-        this._logger.error("Failed to create user: Server unreachable", {
-          connection: this._mongoDbConnection,
-          user: this._mongoDbUser,
-          newUser: this._mongoDbNewUser
-        });
+        if (this._logger) {
+          this._logger.error("Failed to create user: Server unreachable", {
+            connection: this._mongoDbConnection,
+            user: this._mongoDbUser,
+            newUser: this._mongoDbNewUser
+          });
+        }
       } else {
-        this._logger.error("Failed to create user", {
-          error: error,
-          connection: this._mongoDbConnection,
-          user: this._mongoDbUser,
-          newUser: this._mongoDbNewUser
-        });
+        if (this._logger) {
+          this._logger.error("Failed to create user", {
+            error: error,
+            connection: this._mongoDbConnection,
+            user: this._mongoDbUser,
+            newUser: this._mongoDbNewUser
+          });
+        }
       }
 
       //  EBU: Even if this fails, try and start the server

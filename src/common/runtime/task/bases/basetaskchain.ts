@@ -9,7 +9,7 @@ export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITa
   private _onSuccess: TSuccess;
   private _onFailure: TFailure;
 
-  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, logger: Logger) {
+  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, logger: Logger = undefined) {
     super(taskName, logger);
 
     this._onSuccess = onSuccess;
@@ -19,7 +19,9 @@ export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITa
   protected abstract ExecuteInternalAsync(): Promise<boolean>;
 
   public async ExecuteAsync(): Promise<boolean> {
-    this._logger.verbose(`Executing ${this._taskName} Task`);
+    if (this._logger) {
+      this._logger.verbose(`Executing ${this._taskName} Task`);
+    }
 
     let taskResponse: boolean = await this.ExecuteInternalAsync();
 

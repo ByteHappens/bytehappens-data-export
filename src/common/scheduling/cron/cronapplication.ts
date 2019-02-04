@@ -9,7 +9,7 @@ export class CronApplication extends BaseStartableApplication {
   private readonly _task: ITask;
   private readonly _job: CronJob;
 
-  public constructor(task: ITask, cronTime: string, applicationName: string, logger: Logger) {
+  public constructor(task: ITask, cronTime: string, applicationName: string, logger: Logger = undefined) {
     super(applicationName, logger);
 
     this._cronTime = cronTime;
@@ -18,7 +18,10 @@ export class CronApplication extends BaseStartableApplication {
   }
 
   protected StartInternal(): void {
-    this._logger.verbose(`Running task with schedule ${this._cronTime}`);
+    if (this._logger) {
+      this._logger.verbose(`Running task with schedule ${this._cronTime}`);
+    }
+    
     this._job.start();
   }
 }
