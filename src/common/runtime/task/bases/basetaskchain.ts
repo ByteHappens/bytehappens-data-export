@@ -5,11 +5,11 @@ import { ITaskChain } from "../interfaces/itaskchain";
 
 import { BaseTask } from "./basetask";
 
-export abstract class BaseTaskChain extends BaseTask implements ITaskChain {
-  private _onSuccess: ITask;
-  private _onFailure: ITask;
+export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITask> extends BaseTask implements ITaskChain {
+  private _onSuccess: TSuccess;
+  private _onFailure: TFailure;
 
-  public constructor(onSuccess: ITask, onFailure: ITask, taskName: string, logger: Logger) {
+  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, logger: Logger) {
     super(taskName, logger);
 
     this._onSuccess = onSuccess;

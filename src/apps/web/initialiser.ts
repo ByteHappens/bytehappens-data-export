@@ -3,16 +3,21 @@ import { Logger } from "winston";
 import { BaseInititaliser } from "common/runtime/init";
 
 import { IStartableApplication } from "common/runtime/application";
-import { Start } from "common/runtime/task";
+import { Start, ITaskChain } from "common/runtime/task";
 
 import { IWinstonConsoleConfiguration, IWinstonMongoDbConfiguration, IWinstonTelegramConfiguration, CreateLoggerAsync } from "common/logging/winston";
+
+import { IMongoDbConnection, IMongoDbUser } from "common/storage/mongodb";
+
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
+
+import { CreateMongoDbLogUserTask } from "./tasks/createmongodbusertask";
 
 import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
-export class Initialiser extends BaseInititaliser<Start> {
+export class Initialiser extends BaseInititaliser<ITaskChain> {
   private LoadWinstonConsoleConfiguration(): IWinstonConsoleConfiguration {
     let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
 
@@ -83,7 +88,50 @@ export class Initialiser extends BaseInititaliser<Start> {
     return await CreateLoggerAsync(consoleConfiguration, mongoDbConfiguration, telegramConfiguration);
   }
 
-  protected async InitialiseInternalAsync(): Promise<Start> {
+  private async GetCreateMongoDbLogUserTaskAsync(onSuccess: Start): Promise<ITaskChain> {
+    let response: ITaskChain;
+
+    let consoleLevel: string = process.env.LOGGING_CONSOLE_LEVEL;
+
+    let consoleConfiguration: IWinstonConsoleConfiguration = {
+      level: consoleLevel
+    };
+
+    let logger: Logger = await CreateLoggerAsync(consoleConfiguration);
+
+    let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
+    if (useMongoDb) {
+      let host: string = process.env.LOGGING_MONGODB_HOST;
+      let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+      let connection: IMongoDbConnection = {
+        host: host,
+        port: port
+      };
+
+      let username: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
+      let password: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
+      let user: IMongoDbUser = {
+        username: username,
+        password: password
+      };
+
+      let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
+      let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
+      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
+      let newUser: IMongoDbUser = {
+        username: newUsername,
+        password: newPassword,
+        databaseName: databaseName
+      };
+
+      response = new CreateMongoDbLogUserTask(connection, user, newUser, onSuccess, "CreateMongoDbLogUser", logger);
+    } else {
+    }
+
+    return response;
+  }
+
+  private async GetServerTaskAsync(): Promise<Start> {
     let logger: Logger = await this.GetLoggerAsync();
 
     let applicationName: string = process.env.WEB_APP_NAME;
@@ -97,5 +145,11 @@ export class Initialiser extends BaseInititaliser<Start> {
     let application: IStartableApplication = new ExpressApplication(port, routes, undefined, applicationName, logger);
     let task: Start = new Start(application, `Start${applicationName}`, logger);
     return task;
+  }
+
+  protected async InitialiseInternalAsync(): Promise<ITaskChain> {
+    let serverTask: Start = await this.GetServerTaskAsync();
+    let createMongoDbLogUserTask = await this.GetCreateMongoDbLogUserTaskAsync(serverTask);
+    return createMongoDbLogUserTask;
   }
 }
