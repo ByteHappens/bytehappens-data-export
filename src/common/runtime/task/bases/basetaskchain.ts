@@ -16,11 +16,32 @@ export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITa
     this._onFailure = onFailure;
   }
 
-  protected abstract ExecuteInternalAsync(): Promise<boolean>;
-
   public async ExecuteAsync(): Promise<boolean> {
-    let taskResponse: boolean = await super.ExecuteAsync();
+    let taskResponse: boolean = false;
 
-    return taskResponse ? await this._onSuccess.ExecuteAsync() : await this._onFailure.ExecuteAsync();
+    try {
+      taskResponse = await super.ExecuteAsync();
+    } catch (error) {
+      if (this._logger) {
+        this._logger.error(`Error executing ${this._taskName}, running OnFailure`, { error });
+      }
+    }
+
+    let response: boolean;
+    if (taskResponse) {
+      if (this._logger) {
+        this._logger.verbose(`Running OnSuccess after ${this._taskName}`);
+      }
+
+      response = await this._onSuccess.ExecuteAsync();
+    } else {
+      if (this._logger) {
+        this._logger.verbose(`Running OnFailure after ${this._taskName}`);
+      }
+
+      response = await this._onFailure.ExecuteAsync();
+    }
+
+    return response;
   }
 }

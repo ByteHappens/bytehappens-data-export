@@ -28,11 +28,12 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
 
     try {
       await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
-      response = true;
 
       if (this._logger) {
         this._logger.verbose("User created", { connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser });
       }
+      
+      response = true;
     } catch (error) {
       if (error.name == "MongoNetworkError") {
         if (this._logger) {
