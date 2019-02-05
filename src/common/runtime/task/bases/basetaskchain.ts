@@ -1,5 +1,4 @@
-import { Logger } from "winston";
-
+import { IWinstonLoggerFactory } from "common/logging/winston";
 import { ITask } from "../interfaces/itask";
 import { ITaskChain } from "../interfaces/itaskchain";
 
@@ -9,8 +8,8 @@ export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITa
   private _onSuccess: TSuccess;
   private _onFailure: TFailure;
 
-  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, initLogger: Promise<Logger>) {
-    super(taskName, initLogger);
+  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, loggerFactory: IWinstonLoggerFactory) {
+    super(taskName, loggerFactory);
 
     this._onSuccess = onSuccess;
     this._onFailure = onFailure;

@@ -1,11 +1,10 @@
-import { Logger } from "winston";
-
+import { IWinstonLoggerFactory } from "common/logging/winston";
 import { IRunnableApplication } from "../interfaces/irunnableapplication";
 import { BaseApplication } from "./baseapplication";
 
 export abstract class BaseRunnableApplication extends BaseApplication implements IRunnableApplication {
-  public constructor(applicationName: string, initLogger: Promise<Logger>) {
-    super(applicationName, initLogger);
+  public constructor(applicationName: string, loggerFactory: IWinstonLoggerFactory) {
+    super(applicationName, loggerFactory);
   }
 
   protected abstract RunInternalAsync(): Promise<void>;

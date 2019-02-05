@@ -13,7 +13,7 @@ export abstract class BaseInititaliser<T extends ITask> {
 
   public async InitialiseAsync(): Promise<T> {
     this.InitialiseEnvironment();
-    
+
     let task: T = await this.InitialiseInternalAsync();
     return task;
   }

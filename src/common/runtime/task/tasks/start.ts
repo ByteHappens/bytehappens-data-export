@@ -1,5 +1,4 @@
-import { Logger } from "winston";
-
+import { IWinstonLoggerFactory } from "common/logging/winston";
 import { IStartableApplication } from "common/runtime/application";
 
 import { BaseTask } from "../bases/basetask";
@@ -7,8 +6,8 @@ import { BaseTask } from "../bases/basetask";
 export class Start extends BaseTask {
   private _application: IStartableApplication;
 
-  public constructor(application: IStartableApplication, taskName: string, initLogger: Promise<Logger>) {
-    super(taskName, initLogger);
+  public constructor(application: IStartableApplication, taskName: string, loggerFactory: IWinstonLoggerFactory) {
+    super(taskName, loggerFactory);
 
     this._application = application;
   }

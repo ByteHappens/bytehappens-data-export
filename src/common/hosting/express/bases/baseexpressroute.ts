@@ -4,18 +4,15 @@ import { Router } from "express";
 import { IExpressRoute } from "../interfaces/iexpressroute";
 
 export abstract class BaseExpressRoute implements IExpressRoute {
-  private readonly _initLogger: Promise<Logger>;
-
   protected readonly _path: string;
   protected _logger: Logger;
 
-  public constructor(path: string, initLogger: Promise<Logger>) {
+  public constructor(path: string) {
     this._path = path;
-    this._initLogger = initLogger;
   }
 
-  public async InitLoggerAsync(): Promise<void> {
-    this._logger = await this._initLogger;
+  public AttachLogger(logger: Logger): void {
+    this._logger = logger;
   }
 
   public abstract GetRouter(): Router;

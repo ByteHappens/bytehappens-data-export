@@ -1,20 +1,22 @@
 import { Logger } from "winston";
 
+import { IWinstonLoggerFactory } from "common/logging/winston";
+
 import { ITask } from "../interfaces/itask";
 
 export abstract class BaseTask implements ITask {
-  private readonly _initLogger: Promise<Logger>;
+  private readonly _loggerFactory: IWinstonLoggerFactory;
 
   protected readonly _taskName: string;
   protected _logger: Logger;
 
-  public constructor(taskName: string, initLogger: Promise<Logger>) {
+  public constructor(taskName: string, loggerFactory: IWinstonLoggerFactory) {
     this._taskName = taskName;
-    this._initLogger = initLogger;
+    this._loggerFactory = loggerFactory;
   }
 
   public async InitLoggerAsync(): Promise<void> {
-    this._logger = await this._initLogger;
+    this._logger = await this._loggerFactory.CreateWinstonLoggerAsync();
   }
 
   protected abstract ExecuteInternalAsync(): Promise<boolean>;

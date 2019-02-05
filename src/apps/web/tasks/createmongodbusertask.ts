@@ -1,7 +1,6 @@
-import { Logger } from "winston";
-
+import { IWinstonLoggerFactory } from "common/logging/winston";
 import { BaseTaskChain, Start, Exit } from "common/runtime/task";
-import { IMongoDbConnection, IMongoDbUser, CreateNewUserAsync } from "common/storage/mongodb";
+import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
 
 export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
   private readonly _mongoDbConnection: IMongoDbConnection;
@@ -14,9 +13,9 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     newMongoDbUser: IMongoDbUser,
     onSuccess: Start,
     taskName: string,
-    initLogger: Promise<Logger>
+    loggerFactory: IWinstonLoggerFactory
   ) {
-    super(onSuccess, new Exit(`Exit${taskName}`, initLogger), taskName, initLogger);
+    super(onSuccess, new Exit(`Exit${taskName}`, loggerFactory), taskName, loggerFactory);
 
     this._mongoDbConnection = mongoDbConnection;
     this._mongoDbUser = mongoDbUser;
@@ -27,10 +26,14 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     let response: boolean = false;
 
     try {
-      response = await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
+      response = await AddNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
 
       if (this._logger) {
-        this._logger.verbose("User created", { connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser });
+        this._logger.verbose("User created", {
+          connection: this._mongoDbConnection,
+          user: this._mongoDbUser,
+          newUser: this._mongoDbNewUser
+        });
       }
     } catch (error) {
       if (error.name === "MongoError" && error.codeName === "DuplicateKey") {

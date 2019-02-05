@@ -1,6 +1,6 @@
-import { Logger } from "winston";
 import * as express from "express";
 
+import { IWinstonLoggerFactory } from "common/logging/winston";
 import { BaseStartableApplication } from "common/runtime/application";
 
 import { IExpressRoute } from "./interfaces/iexpressroute";
@@ -13,8 +13,14 @@ export class ExpressApplication extends BaseStartableApplication {
 
   private readonly _expressApplication: express.Application;
 
-  public constructor(port: number, routes: IExpressRoute[], errorHandlers: IErrorHandler[], applicationName: string, initLogger: Promise<Logger>) {
-    super(applicationName, initLogger);
+  public constructor(
+    port: number,
+    routes: IExpressRoute[],
+    errorHandlers: IErrorHandler[],
+    applicationName: string,
+    loggerFactory: IWinstonLoggerFactory
+  ) {
+    super(applicationName, loggerFactory);
 
     this._port = port;
     this._routes = routes;
@@ -28,7 +34,12 @@ export class ExpressApplication extends BaseStartableApplication {
     this._expressApplication.use(router);
   }
 
-  private DefaultProcessError(error: any, request: express.Request, response: express.Response, next: express.NextFunction): void {
+  private DefaultProcessError(
+    error: any,
+    request: express.Request,
+    response: express.Response,
+    next: express.NextFunction
+  ): void {
     if (this._logger) {
       this._logger.error("Something broke!", { error });
     }
@@ -43,21 +54,28 @@ export class ExpressApplication extends BaseStartableApplication {
     }
 
     if (this._routes !== undefined) {
-      this._routes.forEach((route: IExpressRoute) => this.Register(route));
+      this._routes.forEach((route: IExpressRoute) => {
+        route.AttachLogger(this._logger);
+        this.Register(route);
+      });
     }
 
     if (this._errorHandlers !== undefined) {
       this._errorHandlers.forEach((errorHandler: IErrorHandler) => {
-        this._expressApplication.use((error: any, request: express.Request, response: express.Response, next: express.NextFunction) => {
-          errorHandler.Handle(error, request, response);
-          next();
-        });
+        this._expressApplication.use(
+          (error: any, request: express.Request, response: express.Response, next: express.NextFunction) => {
+            errorHandler.Handle(error, request, response);
+            next();
+          }
+        );
       });
     }
 
-    this._expressApplication.use((error: any, request: express.Request, response: express.Response, next: express.NextFunction) => {
-      this.DefaultProcessError(error, request, response, next);
-    });
+    this._expressApplication.use(
+      (error: any, request: express.Request, response: express.Response, next: express.NextFunction) => {
+        this.DefaultProcessError(error, request, response, next);
+      }
+    );
 
     this._expressApplication.listen(this._port);
   }
