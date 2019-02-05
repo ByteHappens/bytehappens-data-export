@@ -3,6 +3,11 @@ import { Logger, LoggerOptions, createLogger, format } from "winston";
 import { IWinstonTransportConfiguration } from "./interfaces/iwinstontransportconfiguration";
 import { IWinstonLoggerFactory } from "./interfaces/iwinstonloggerfactory";
 
+interface AddedTransportResult {
+  transportName: string;
+  added: boolean;
+}
+
 export class WinstonLoggerFactory implements IWinstonLoggerFactory {
   private readonly _level: string;
   private readonly _transportConfigurations: IWinstonTransportConfiguration[];
@@ -10,6 +15,27 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
   constructor(level: string, configurations: IWinstonTransportConfiguration[]) {
     this._level = level;
     this._transportConfigurations = configurations;
+  }
+
+  private async AddTransportAsync(transportConfiguration: IWinstonTransportConfiguration, logger: Logger): Promise<boolean> {
+    let response: boolean = false;
+
+    try {
+      let transport: any = await transportConfiguration.InitTransportAsync();
+      logger.add(transport);
+      logger.debug("Transport added", {
+        transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
+      });
+
+      response = true;
+    } catch (error) {
+      logger.error("Failed to add transport", {
+        error,
+        transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
+      });
+    }
+
+    return response;
   }
 
   public async CreateWinstonLoggerAsync(): Promise<Logger> {
@@ -21,23 +47,39 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
 
     let response: Logger = createLogger(loggerOptions);
 
-    this._transportConfigurations.forEach(async (transportConfiguration: IWinstonTransportConfiguration) => {
-      if (!transportConfiguration) {
-        response.silly("Dafuq u adding undefined transport !?");
-      } else {
-        try {
-          let transport: any = await transportConfiguration.InitTransportAsync();
-          response.add(transport);
-          response.debug("Transport added", {
-            transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
-          });
-        } catch (error) {
-          response.error("Failed to add transport", {
-            error,
-            transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
-          });
+    let requestedTransports: { [id: string]: boolean } = {};
+    let addTransportResponses = await Promise.all(
+      this._transportConfigurations.map((transportConfiguration: IWinstonTransportConfiguration) => {
+        let responseInternal: Promise<AddedTransportResult>;
+        if (!transportConfiguration) {
+          response.silly("Dafuq u adding undefined transport !?");
+          responseInternal = Promise.resolve({ transportName: transportConfiguration.constructor.name, added: false });
+        } else {
+          responseInternal = this.AddTransportAsync(transportConfiguration, response)
+            .then((added: boolean) => {
+              return { transportName: transportConfiguration.constructor.name, added };
+            })
+            .catch(error => {
+              response.error("Failed to add transport", {
+                error,
+                transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
+              });
+
+              return { transportName: transportConfiguration.constructor.name, added: false };
+            });
         }
-      }
+
+        return responseInternal;
+      })
+    );
+
+    addTransportResponses.forEach((result: AddedTransportResult) => {
+      requestedTransports[result.transportName] = result.added;
+    });
+
+    let addedTransportCount: number = Object.keys(requestedTransports).filter((key: string) => requestedTransports[key]).length;
+    response.debug(`Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
+      requestedTransports
     });
 
     return response;
