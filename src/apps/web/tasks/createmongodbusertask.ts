@@ -27,15 +27,21 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     let response: boolean = false;
 
     try {
-      await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
+      response = await CreateNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
 
       if (this._logger) {
         this._logger.verbose("User created", { connection: this._mongoDbConnection, user: this._mongoDbUser, newUser: this._mongoDbNewUser });
       }
-      
-      response = true;
     } catch (error) {
-      if (error.name == "MongoNetworkError") {
+      if (error.name === "MongoError" && error.codeName === "DuplicateKey") {
+        if (this._logger) {
+          this._logger.verbose("User created already exists", {
+            connection: this._mongoDbConnection,
+            user: this._mongoDbUser,
+            newUser: this._mongoDbNewUser
+          });
+        }
+      } else if (error.name === "MongoNetworkError") {
         if (this._logger) {
           this._logger.error("Failed to create user: Server unreachable", {
             connection: this._mongoDbConnection,

@@ -22,15 +22,12 @@ export async function CreateMongoClientAsync(mongoDbConnection: IMongoDbConnecti
     useNewUrlParser: true
   };
 
-  let client: MongoClient = await MongoClient.connect(
-    mongoDbUri,
-    mongoClientOptions
-  );
+  let client: MongoClient = await MongoClient.connect(mongoDbUri, mongoClientOptions);
 
   return client;
 }
 
-export async function CreateNewUserAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser): Promise<void> {
+export async function CreateNewUserAsync(mongoDbConfiguration: IMongoDbConnection, mongoDbUser: IMongoDbUser, newMongoDbUser: IMongoDbUser): Promise<boolean> {
   let client: MongoClient = await CreateMongoClientAsync(mongoDbConfiguration, mongoDbUser);
 
   let databaseName: string = newMongoDbUser.databaseName;
@@ -45,5 +42,7 @@ export async function CreateNewUserAsync(mongoDbConfiguration: IMongoDbConnectio
   };
 
   let db: Db = client.db(databaseName);
-  await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
+  let operationResponse = await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
+
+  return operationResponse !== undefined;
 }
