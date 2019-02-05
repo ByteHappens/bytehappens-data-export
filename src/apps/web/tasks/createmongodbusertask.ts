@@ -38,7 +38,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     } catch (error) {
       if (error.name === "MongoError" && error.codeName === "DuplicateKey") {
         if (this._logger) {
-          this._logger.verbose("User created already exists", {
+          this._logger.verbose("User already exists", {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
