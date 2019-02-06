@@ -3,7 +3,7 @@ import { IStartableApplication } from "common/runtime/application";
 
 import { BaseTask } from "../bases/basetask";
 
-export class Start extends BaseTask {
+export class StartApplication extends BaseTask {
   private _application: IStartableApplication;
 
   public constructor(application: IStartableApplication, taskName: string, loggerFactory: IWinstonLoggerFactory) {

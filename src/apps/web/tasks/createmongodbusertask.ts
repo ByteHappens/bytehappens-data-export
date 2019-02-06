@@ -1,8 +1,8 @@
 import { IWinstonLoggerFactory } from "common/logging/winston";
-import { BaseTaskChain, Start, Exit } from "common/runtime/task";
+import { BaseTaskChain, ITask } from "common/runtime/task";
 import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
 
-export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
+export class CreateMongoDbLogUserTask<T extends ITask> extends BaseTaskChain<T, T> {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _mongoDbNewUser: IMongoDbUser;
@@ -11,11 +11,12 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     mongoDbConnection: IMongoDbConnection,
     mongoDbUser: IMongoDbUser,
     newMongoDbUser: IMongoDbUser,
-    onSuccess: Start,
+    onSuccess: T,
     taskName: string,
     loggerFactory: IWinstonLoggerFactory
   ) {
-    super(onSuccess, new Exit(`Exit${taskName}`, loggerFactory), taskName, loggerFactory);
+    //  EBU: Running OnSuccess regardless of success
+    super(onSuccess, onSuccess, taskName, loggerFactory);
 
     this._mongoDbConnection = mongoDbConnection;
     this._mongoDbUser = mongoDbUser;
@@ -34,6 +35,8 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
           user: this._mongoDbUser,
           newUser: this._mongoDbNewUser
         });
+
+        response = true;
       }
     } catch (error) {
       if (error.name === "MongoError" && error.codeName === "DuplicateKey") {
@@ -62,9 +65,6 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
           });
         }
       }
-
-      //  EBU: Even if this fails, try and start the server
-      response = true;
     }
 
     return response;

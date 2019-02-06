@@ -1,7 +1,7 @@
 import { BaseInititaliser } from "common/runtime/init";
 
 import { IStartableApplication } from "common/runtime/application";
-import { Start, ITaskChain } from "common/runtime/task";
+import { ITask, ITaskChain, StartApplication } from "common/runtime/task";
 
 import { IWinstonTransportConfiguration, IWinstonLoggerFactory, WinstonLoggerFactory } from "common/logging/winston";
 import { IWinstonConsoleTransportConfiguration, WinstonConsoleTransportConfiguration } from "common/logging/winston/console";
@@ -106,7 +106,7 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     return new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
   }
 
-  private GetCreateMongoDbLogUserTask(onSuccess: Start): ITaskChain {
+  private GetCreateMongoDbLogUserTask(onSuccess: ITask): ITaskChain {
     let response: ITaskChain;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
@@ -150,7 +150,7 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     return response;
   }
 
-  private GetServerTask(): Start {
+  private GetServerTask(): ITask {
     let lightWinstonLoggerFactory: IWinstonLoggerFactory = this.GetLightWinstonLoggerFactory();
     let winstonLoggerFactory: IWinstonLoggerFactory = this.GetWinstonLoggerFactory();
 
@@ -173,12 +173,12 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
       applicationName,
       winstonLoggerFactory
     );
-    let task: Start = new Start(application, `Start${applicationName}`, lightWinstonLoggerFactory);
+    let task: StartApplication = new StartApplication(application, `Start${applicationName}`, lightWinstonLoggerFactory);
     return task;
   }
 
   protected async InitialiseInternalAsync(): Promise<ITaskChain> {
-    let serverTask: Start = this.GetServerTask();
+    let serverTask: ITask = this.GetServerTask();
     let createMongoDbLogUserTask = this.GetCreateMongoDbLogUserTask(serverTask);
     return createMongoDbLogUserTask;
   }
