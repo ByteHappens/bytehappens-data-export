@@ -29,7 +29,7 @@ export class TaskChain<TExecute extends ITask, TSuccess extends ITask, TFailure 
       taskResponse = await this._onExecute.ExecuteAsync();
     } catch (error) {
       if (this._logger) {
-        this._logger.log("error", `Failed to execute ${this._taskName}`, { error });
+        this._logger.log("error", "Unexpected error when running task", { error });
       }
     }
 

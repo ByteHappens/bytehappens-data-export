@@ -90,9 +90,6 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
   public async GetWinstonLoggerAsync(): Promise<Logger> {
     if (!this._logger) {
       this._logger = this.InitWinstonLoggerAsync();
-    } else {
-      let logger: Logger = await this._logger;
-      logger.log("debug", "Logger already created");
     }
 
     return this._logger;
