@@ -16,7 +16,7 @@ export abstract class BaseTask implements ITask {
   }
 
   public async InitLoggerAsync(): Promise<void> {
-    this._logger = await this._loggerFactory.CreateWinstonLoggerAsync();
+    this._logger = await this._loggerFactory.GetWinstonLoggerAsync();
   }
 
   protected abstract ExecuteInternalAsync(): Promise<boolean>;

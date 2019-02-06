@@ -12,6 +12,8 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
   private readonly _level: string;
   private readonly _transportConfigurations: IWinstonTransportConfiguration[];
 
+  private _logger: Promise<Logger>;
+
   constructor(level: string, configurations: IWinstonTransportConfiguration[]) {
     this._level = level;
     this._transportConfigurations = configurations;
@@ -38,7 +40,7 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
     return response;
   }
 
-  public async CreateWinstonLoggerAsync(): Promise<Logger> {
+  private async InitWinstonLoggerAsync(): Promise<Logger> {
     let loggerOptions: LoggerOptions = {
       level: this._level,
       format: format.json(),
@@ -77,11 +79,24 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
       requestedTransports[result.transportName] = result.added;
     });
 
+    response.debug("Logger created");
+
     let addedTransportCount: number = Object.keys(requestedTransports).filter((key: string) => requestedTransports[key]).length;
     response.debug(`Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
       requestedTransports
     });
 
     return response;
+  }
+
+  public async GetWinstonLoggerAsync(): Promise<Logger> {
+    if (!this._logger) {
+      this._logger = this.InitWinstonLoggerAsync();
+    } else {
+      let logger: Logger = await this._logger;
+      logger.debug("Logger already created");
+    }
+
+    return this._logger;
   }
 }

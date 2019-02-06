@@ -14,6 +14,6 @@ export abstract class BaseApplication {
   }
 
   public async InitLoggerAsync(): Promise<void> {
-    this._logger = await this._loggerFactory.CreateWinstonLoggerAsync();
+    this._logger = await this._loggerFactory.GetWinstonLoggerAsync();
   }
 }
