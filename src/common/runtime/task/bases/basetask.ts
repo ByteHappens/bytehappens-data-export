@@ -25,7 +25,7 @@ export abstract class BaseTask implements ITask {
     await this.InitLoggerAsync();
 
     if (this._logger) {
-      this._logger.verbose(`Executing ${this._taskName} Task`);
+      this._logger.log("verbose", `Executing ${this._taskName} task`);
     }
 
     return await this.ExecuteInternalAsync();

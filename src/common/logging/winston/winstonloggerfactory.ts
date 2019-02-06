@@ -25,13 +25,13 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
     try {
       let transport: any = await transportConfiguration.InitTransportAsync();
       logger.add(transport);
-      logger.debug("Transport added", {
+      logger.log("debug", "Added transport", {
         transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
       });
 
       response = true;
     } catch (error) {
-      logger.error("Failed to add transport", {
+      logger.log("error", "Failed to add transport", {
         error,
         transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
       });
@@ -43,7 +43,7 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
   private async InitWinstonLoggerAsync(): Promise<Logger> {
     let loggerOptions: LoggerOptions = {
       level: this._level,
-      format: format.json(),
+      format: format.combine(format.timestamp(), format.combine(format.align(), format.simple())),
       transports: []
     };
 
@@ -54,7 +54,7 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
       this._transportConfigurations.map((transportConfiguration: IWinstonTransportConfiguration) => {
         let responseInternal: Promise<AddedTransportResult>;
         if (!transportConfiguration) {
-          response.silly("Dafuq u adding undefined transport !?");
+          response.log("silly", "Dafuq u adding undefined transport !?");
           responseInternal = Promise.resolve({ transportName: transportConfiguration.constructor.name, added: false });
         } else {
           responseInternal = this.AddTransportAsync(transportConfiguration, response)
@@ -79,10 +79,8 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
       requestedTransports[result.transportName] = result.added;
     });
 
-    response.debug("Logger created");
-
     let addedTransportCount: number = Object.keys(requestedTransports).filter((key: string) => requestedTransports[key]).length;
-    response.debug(`Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
+    response.log("debug", `Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
       requestedTransports
     });
 
@@ -94,7 +92,7 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
       this._logger = this.InitWinstonLoggerAsync();
     } else {
       let logger: Logger = await this._logger;
-      logger.debug("Logger already created");
+      logger.log("debug", "Logger already created");
     }
 
     return this._logger;

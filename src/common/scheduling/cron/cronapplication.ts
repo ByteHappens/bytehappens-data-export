@@ -19,7 +19,7 @@ export class CronApplication extends BaseStartableApplication {
 
   protected async StartInternalAsync(): Promise<void> {
     if (this._logger) {
-      this._logger.verbose(`Running task with schedule ${this._cronTime}`);
+      this._logger.log("verbose", `Starting ${this._applicationName} application with cron schedule ${this._cronTime}`);
     }
 
     this._job.start();

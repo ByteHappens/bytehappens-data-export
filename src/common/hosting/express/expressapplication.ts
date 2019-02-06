@@ -41,7 +41,7 @@ export class ExpressApplication extends BaseStartableApplication {
     next: express.NextFunction
   ): void {
     if (this._logger) {
-      this._logger.error("Something broke!", { error });
+      this._logger.log("error", "Something broke!", { error });
     }
 
     response.status(500);
@@ -50,7 +50,7 @@ export class ExpressApplication extends BaseStartableApplication {
 
   protected async StartInternalAsync(): Promise<void> {
     if (this._logger) {
-      this._logger.verbose(`Listening on port ${this._port}`);
+      this._logger.log("verbose", `Listening on port ${this._port}`);
     }
 
     if (this._routes !== undefined) {

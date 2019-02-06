@@ -13,7 +13,7 @@ export abstract class BaseStartableApplication extends BaseApplication implement
     await this.InitLoggerAsync();
 
     if (this._logger) {
-      this._logger.verbose(`Starting ${this._applicationName} App`);
+      this._logger.log("verbose", `Starting ${this._applicationName} application`);
     }
 
     await this.StartInternalAsync();

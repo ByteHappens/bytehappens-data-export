@@ -29,7 +29,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
       response = await AddNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
 
       if (this._logger) {
-        this._logger.verbose("User created", {
+        this._logger.log("verbose", "Created User", {
           connection: this._mongoDbConnection,
           user: this._mongoDbUser,
           newUser: this._mongoDbNewUser
@@ -38,7 +38,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
     } catch (error) {
       if (error.name === "MongoError" && error.codeName === "DuplicateKey") {
         if (this._logger) {
-          this._logger.verbose("User already exists", {
+          this._logger.log("verbose", "User already created", {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
@@ -46,7 +46,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
         }
       } else if (error.name === "MongoNetworkError") {
         if (this._logger) {
-          this._logger.error("Failed to create user: Server unreachable", {
+          this._logger.log("error", "Failed to create user: Server unreachable", {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
@@ -54,7 +54,7 @@ export class CreateMongoDbLogUserTask extends BaseTaskChain<Start, Exit> {
         }
       } else {
         if (this._logger) {
-          this._logger.error("Failed to create user", {
+          this._logger.log("error", "Failed to create user", {
             error: error,
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,

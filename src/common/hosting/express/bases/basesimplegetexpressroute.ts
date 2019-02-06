@@ -11,7 +11,7 @@ export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
 
   public GetRouter(): Router {
     if (this._logger) {
-      this._logger.verbose(`Creating Router on ${this._path}`);
+      this._logger.log("verbose", `Creating Router on ${this._path}`);
     }
 
     let router: Router = Router();

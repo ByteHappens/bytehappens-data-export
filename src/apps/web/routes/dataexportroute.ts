@@ -127,7 +127,7 @@ export class DataExportRoute extends BaseSimpleGetExpressRoute {
 
   protected ProcessRequestInternal(request: Request, response: Response): void {
     if (this._logger) {
-      this._logger.info("Exporting data to CSV");
+      this._logger.log("info", "Exporting data to CSV");
     }
 
     let fields: string[] = this.GetFields();

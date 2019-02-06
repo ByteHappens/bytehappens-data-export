@@ -8,7 +8,7 @@ export class Exit extends BaseTask {
 
   protected async ExecuteInternalAsync(): Promise<boolean> {
     if (this._logger) {
-      this._logger.verbose("Exiting");
+      this._logger.log("verbose", "Exiting");
     }
 
     process.exit();
