@@ -1,25 +1,32 @@
 import { IWinstonLoggerFactory } from "common/logging/winston";
 import { ITask } from "../interfaces/itask";
-import { ITaskChain } from "../interfaces/itaskchain";
 
-import { BaseTask } from "./basetask";
+import { BaseTask } from "../bases/basetask";
 
-export abstract class BaseTaskChain<TSuccess extends ITask, TFailure extends ITask> extends BaseTask implements ITaskChain {
+export class TaskChain<TExecute extends ITask, TSuccess extends ITask, TFailure extends ITask> extends BaseTask {
+  private _onExecute: TExecute;
   private _onSuccess: TSuccess;
   private _onFailure: TFailure;
 
-  public constructor(onSuccess: TSuccess, onFailure: TFailure, taskName: string, loggerFactory: IWinstonLoggerFactory) {
+  public constructor(
+    onExecute: TExecute,
+    onSuccess: TSuccess,
+    onFailure: TFailure,
+    taskName: string,
+    loggerFactory: IWinstonLoggerFactory
+  ) {
     super(taskName, loggerFactory);
 
+    this._onExecute = onExecute;
     this._onSuccess = onSuccess;
     this._onFailure = onFailure;
   }
 
-  public async ExecuteAsync(): Promise<boolean> {
+  public async ExecuteInternalAsync(): Promise<boolean> {
     let taskResponse: boolean = false;
 
     try {
-      taskResponse = await super.ExecuteAsync();
+      taskResponse = await this._onExecute.ExecuteAsync();
     } catch (error) {
       if (this._logger) {
         this._logger.log("error", `Failed to execute ${this._taskName}`, { error });

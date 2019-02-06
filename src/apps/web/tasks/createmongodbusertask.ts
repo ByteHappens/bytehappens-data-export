@@ -1,8 +1,8 @@
 import { IWinstonLoggerFactory } from "common/logging/winston";
-import { BaseTaskChain, ITask } from "common/runtime/task";
 import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
+import { BaseTask } from "common/runtime/task";
 
-export class CreateMongoDbLogUserTask<T extends ITask> extends BaseTaskChain<T, T> {
+export class CreateMongoDbLogUserTask extends BaseTask {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _mongoDbNewUser: IMongoDbUser;
@@ -11,12 +11,10 @@ export class CreateMongoDbLogUserTask<T extends ITask> extends BaseTaskChain<T, 
     mongoDbConnection: IMongoDbConnection,
     mongoDbUser: IMongoDbUser,
     newMongoDbUser: IMongoDbUser,
-    onSuccess: T,
     taskName: string,
     loggerFactory: IWinstonLoggerFactory
   ) {
-    //  EBU: Running OnSuccess regardless of success
-    super(onSuccess, onSuccess, taskName, loggerFactory);
+    super(taskName, loggerFactory);
 
     this._mongoDbConnection = mongoDbConnection;
     this._mongoDbUser = mongoDbUser;

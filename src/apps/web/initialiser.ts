@@ -1,7 +1,7 @@
 import { BaseInititaliser } from "common/runtime/init";
 
 import { IStartableApplication } from "common/runtime/application";
-import { ITask, ITaskChain, StartApplication } from "common/runtime/task";
+import { ITask, TaskChain, StartApplication } from "common/runtime/task";
 
 import { IWinstonTransportConfiguration, IWinstonLoggerFactory, WinstonLoggerFactory } from "common/logging/winston";
 import { IWinstonConsoleTransportConfiguration, WinstonConsoleTransportConfiguration } from "common/logging/winston/console";
@@ -18,7 +18,7 @@ import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
-export class Initialiser extends BaseInititaliser<ITaskChain> {
+export class Initialiser extends BaseInititaliser<ITask> {
   private LoadWinstonConsoleTransportConfiguration(): IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
     return new WinstonConsoleTransportConfiguration(level);
@@ -106,8 +106,8 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     return new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
   }
 
-  private GetCreateMongoDbLogUserTask(onSuccess: ITask): ITaskChain {
-    let response: ITaskChain;
+  private GetCreateMongoDbLogUserTask(lightWinstonLoggerFactory: IWinstonLoggerFactory): ITask {
+    let response: ITask;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
     if (useMongoDb) {
@@ -134,26 +134,17 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
         databaseName: databaseName
       };
 
-      let lightWinstonLoggerFactory: IWinstonLoggerFactory = this.GetLightWinstonLoggerFactory();
-
-      response = new CreateMongoDbLogUserTask(
-        connection,
-        user,
-        newUser,
-        onSuccess,
-        "CreateMongoDbLogUser",
-        lightWinstonLoggerFactory
-      );
+      response = new CreateMongoDbLogUserTask(connection, user, newUser, "CreateMongoDbLogUser", lightWinstonLoggerFactory);
     } else {
     }
 
     return response;
   }
 
-  private GetServerTask(): ITask {
-    let lightWinstonLoggerFactory: IWinstonLoggerFactory = this.GetLightWinstonLoggerFactory();
-    let winstonLoggerFactory: IWinstonLoggerFactory = this.GetWinstonLoggerFactory();
-
+  private GetExpressApplicationTask(
+    winstonLoggerFactory: IWinstonLoggerFactory,
+    lightWinstonLoggerFactory: IWinstonLoggerFactory
+  ): ITask {
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
@@ -177,9 +168,22 @@ export class Initialiser extends BaseInititaliser<ITaskChain> {
     return task;
   }
 
-  protected async InitialiseInternalAsync(): Promise<ITaskChain> {
-    let serverTask: ITask = this.GetServerTask();
-    let createMongoDbLogUserTask = this.GetCreateMongoDbLogUserTask(serverTask);
-    return createMongoDbLogUserTask;
+  protected async InitialiseInternalAsync(): Promise<ITask> {
+    let winstonLoggerFactory: IWinstonLoggerFactory = this.GetWinstonLoggerFactory();
+    let lightWinstonLoggerFactory: IWinstonLoggerFactory = this.GetLightWinstonLoggerFactory();
+
+    let createMongoDbLogUserTask: ITask = this.GetCreateMongoDbLogUserTask(lightWinstonLoggerFactory);
+    let serverTask: ITask = this.GetExpressApplicationTask(winstonLoggerFactory, lightWinstonLoggerFactory);
+
+    //  EBU: Start Server regardless of success
+    let response: ITask = new TaskChain(
+      createMongoDbLogUserTask,
+      serverTask,
+      serverTask,
+      "TaskChain",
+      lightWinstonLoggerFactory
+    );
+
+    return response;
   }
 }
