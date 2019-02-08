@@ -1,12 +1,17 @@
-import { IWinstonLoggerFactory } from "common/logging/winston";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
+
 import { BaseRunnableApplication } from "common/runtime/application";
 
 import { ITask } from "../interfaces/itask";
 
-export class TaskRunner extends BaseRunnableApplication {
+export class TaskRunner<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseRunnableApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _task: ITask;
 
-  public constructor(task: ITask, applicationName: string, loggerFactory: IWinstonLoggerFactory) {
+  public constructor(task: ITask, applicationName: string, loggerFactory: TLoggerFactory) {
     super(applicationName, loggerFactory);
     this._task = task;
   }

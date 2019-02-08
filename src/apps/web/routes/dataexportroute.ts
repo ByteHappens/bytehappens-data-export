@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import { Parser } from "json2csv";
 
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
 import { BaseSimpleGetExpressRoute } from "common/hosting/express";
 
-export class DataExportRoute extends BaseSimpleGetExpressRoute {
+export class DataExportRoute<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseSimpleGetExpressRoute<TLog, TLogger, TLoggerFactory> {
   private GetFields(): string[] {
     return ["Sku", "Title", "Short Description", "Long Description", "Price", "In Stock", "Stock", "Delivery (days)"];
   }
@@ -126,9 +131,7 @@ export class DataExportRoute extends BaseSimpleGetExpressRoute {
   }
 
   protected ProcessRequestInternal(request: Request, response: Response): void {
-    if (this._logger) {
-      this._logger.log("info", "Exporting data to CSV");
-    }
+    this._logger.Log(<TLog>{ level: "info", message: "Exporting data to CSV" });
 
     let fields: string[] = this.GetFields();
     let data: any[] = this.GetData();

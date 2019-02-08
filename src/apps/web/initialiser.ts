@@ -3,7 +3,8 @@ import { BaseInititaliser } from "common/runtime/init";
 import { IStartableApplication } from "common/runtime/application";
 import { ITask, TaskChain, StartApplication, RetriableTask } from "common/runtime/task";
 
-import { IWinstonTransportConfiguration, IWinstonLoggerFactory, WinstonLoggerFactory } from "common/logging/winston";
+import { ILog } from "common/logging";
+import { IWinstonTransportConfiguration, WinstonLoggerFactory, WinstonLogger } from "common/logging/winston";
 import { IWinstonConsoleTransportConfiguration, WinstonConsoleTransportConfiguration } from "common/logging/winston/console";
 import { IWinstonMongoDbTransportConfiguration, WinstonMongoDbTransportConfiguration } from "common/logging/winston/mongodb";
 import { IWinstonTelegramTransportConfiguration, WinstonTelegramTransportConfiguration } from "common/logging/winston/telegram";
@@ -18,7 +19,11 @@ import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
-export class Initialiser extends BaseInititaliser<ITask> {
+export class Initialiser<
+  TLog extends ILog,
+  TLogger extends WinstonLogger<TLog>,
+  TLoggerFactory extends WinstonLoggerFactory<TLog, TLogger>,
+> extends BaseInititaliser<ITask> {
   private LoadWinstonConsoleTransportConfiguration(): IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
     return new WinstonConsoleTransportConfiguration(level);
@@ -82,16 +87,16 @@ export class Initialiser extends BaseInititaliser<ITask> {
     }
   }
 
-  private GetLightWinstonLoggerFactory(): IWinstonLoggerFactory {
+  private GetLightWinstonLoggerFactory(): TLoggerFactory {
     let transportConfigurations: IWinstonTransportConfiguration[] = [];
 
     let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
     this.AddTransportConfiguration(consoleTransportConfiguration, transportConfigurations);
 
-    return new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
+    return <TLoggerFactory>new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
   }
 
-  private GetWinstonLoggerFactory(): IWinstonLoggerFactory {
+  private GetWinstonLoggerFactory(): TLoggerFactory {
     let transportConfigurations: IWinstonTransportConfiguration[] = [];
 
     let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
@@ -103,10 +108,10 @@ export class Initialiser extends BaseInititaliser<ITask> {
     let telegramTransportConfiguration: IWinstonTelegramTransportConfiguration = this.LoadWinstonTelegramTransportConfiguration();
     this.AddTransportConfiguration(telegramTransportConfiguration, transportConfigurations);
 
-    return new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
+    return <TLoggerFactory>new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
   }
 
-  private GetCreateMongoDbLogUserTask(lightWinstonLoggerFactory: IWinstonLoggerFactory): ITask {
+  private GetCreateMongoDbLogUserTask(lightWinstonLoggerFactory: TLoggerFactory): ITask {
     let response: ITask;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
@@ -141,10 +146,7 @@ export class Initialiser extends BaseInititaliser<ITask> {
     return response;
   }
 
-  private GetExpressApplicationTask(
-    winstonLoggerFactory: IWinstonLoggerFactory,
-    lightWinstonLoggerFactory: IWinstonLoggerFactory
-  ): ITask {
+  private GetExpressApplicationTask(winstonLoggerFactory: TLoggerFactory, lightWinstonLoggerFactory: TLoggerFactory): ITask {
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
@@ -152,9 +154,9 @@ export class Initialiser extends BaseInititaliser<ITask> {
     let statusPath: string = process.env.WEB_STATUS_PATH;
 
     let routes: IExpressRoute[] = [
-      new DefaultRoute(defaultPath),
-      new StatusRoute(statusPath),
-      new DataExportRoute("/products.csv")
+      new DefaultRoute(defaultPath, winstonLoggerFactory),
+      new StatusRoute(statusPath, winstonLoggerFactory),
+      new DataExportRoute("/products.csv", winstonLoggerFactory)
     ];
 
     let application: IStartableApplication = new ExpressApplication(
@@ -164,15 +166,15 @@ export class Initialiser extends BaseInititaliser<ITask> {
       applicationName,
       winstonLoggerFactory
     );
-    let task: StartApplication = new StartApplication(application, `Start${applicationName}`, lightWinstonLoggerFactory);
+    let task: ITask = new StartApplication(application, `Start${applicationName}`, lightWinstonLoggerFactory);
     return task;
   }
 
   protected async InitialiseInternalAsync(): Promise<ITask> {
     let response: ITask;
 
-    let winstonLoggerFactory: IWinstonLoggerFactory = this.GetWinstonLoggerFactory();
-    let lightWinstonLoggerFactory: IWinstonLoggerFactory = this.GetLightWinstonLoggerFactory();
+    let winstonLoggerFactory: TLoggerFactory = this.GetWinstonLoggerFactory();
+    let lightWinstonLoggerFactory: TLoggerFactory = this.GetLightWinstonLoggerFactory();
 
     let createMongoDbLogUserTask: ITask = this.GetCreateMongoDbLogUserTask(lightWinstonLoggerFactory);
     let serverTask: ITask = this.GetExpressApplicationTask(winstonLoggerFactory, lightWinstonLoggerFactory);

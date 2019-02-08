@@ -1,9 +1,14 @@
-import { IWinstonLoggerFactory } from "common/logging/winston";
-import { ITask } from "../interfaces/itask";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
 
+import { ITask } from "../interfaces/itask";
 import { BaseTask } from "../bases/basetask";
 
-export class RetriableTask<TExecute extends ITask> extends BaseTask {
+export class RetriableTask<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>,
+  TExecute extends ITask
+> extends BaseTask<TLog, TLogger, TLoggerFactory> {
   private _onExecute: TExecute;
   private _attempts: number;
   private _delayInMs: number;
@@ -13,7 +18,7 @@ export class RetriableTask<TExecute extends ITask> extends BaseTask {
     attempts: number,
     delayInMs: number,
     taskName: string,
-    loggerFactory: IWinstonLoggerFactory
+    loggerFactory: TLoggerFactory
   ) {
     super(taskName, loggerFactory);
 
@@ -31,22 +36,22 @@ export class RetriableTask<TExecute extends ITask> extends BaseTask {
       try {
         response = await this._onExecute.ExecuteAsync();
       } catch (error) {
-        if (this._logger) {
-          this._logger.log("error", "Unexpected error when running task", { error });
-        }
+        this._logger.Log(<TLog>{ level: "error", message: "Unexpected error when running task", meta: { error } });
       }
 
       currentAttempts++;
       shouldRetry = !response && currentAttempts < this._attempts;
 
       if (shouldRetry) {
-        if (this._logger) {
-          this._logger.log("error", "Retrying task after delay", {
+        this._logger.Log(<TLog>{
+          level: "error",
+          message: "Retrying task after delay",
+          meta: {
             currentAttempts,
             maxAttempts: this._attempts,
             delayInMs: this._delayInMs
-          });
-        }
+          }
+        });
 
         await new Promise((resolve, reject) => {
           setTimeout(async function() {

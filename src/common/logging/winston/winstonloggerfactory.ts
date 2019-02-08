@@ -1,18 +1,21 @@
 import { Logger, LoggerOptions, createLogger, format } from "winston";
 
+import { ILog, ILoggerFactory } from "common/logging";
+
 import { IWinstonTransportConfiguration } from "./interfaces/iwinstontransportconfiguration";
-import { IWinstonLoggerFactory } from "./interfaces/iwinstonloggerfactory";
+import { WinstonLogger } from "./winstonlogger";
 
 interface AddedTransportResult {
   transportName: string;
   added: boolean;
 }
 
-export class WinstonLoggerFactory implements IWinstonLoggerFactory {
+export class WinstonLoggerFactory<TLog extends ILog, TWinstonLogger extends WinstonLogger<TLog>>
+  implements ILoggerFactory<TLog, TWinstonLogger> {
   private readonly _level: string;
   private readonly _transportConfigurations: IWinstonTransportConfiguration[];
 
-  private _logger: Promise<Logger>;
+  private _logger: Promise<TWinstonLogger>;
 
   constructor(level: string, configurations: IWinstonTransportConfiguration[]) {
     this._level = level;
@@ -40,35 +43,35 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
     return response;
   }
 
-  private async InitWinstonLoggerAsync(): Promise<Logger> {
+  private async InitWinstonLoggerAsync(): Promise<TWinstonLogger> {
     let loggerOptions: LoggerOptions = {
       level: this._level,
       format: format.combine(format.timestamp(), format.combine(format.align(), format.simple())),
       transports: []
     };
 
-    let response: Logger = createLogger(loggerOptions);
+    let logger: Logger = createLogger(loggerOptions);
 
     let requestedTransports: { [id: string]: boolean } = {};
     let addTransportResponses = await Promise.all(
-      this._transportConfigurations.map((transportConfiguration: IWinstonTransportConfiguration) => {
-        let responseInternal: Promise<AddedTransportResult>;
-        if (!transportConfiguration) {
-          response.log("silly", "Dafuq u adding undefined transport !?");
-          responseInternal = Promise.resolve({ transportName: transportConfiguration.constructor.name, added: false });
-        } else {
-          responseInternal = this.AddTransportAsync(transportConfiguration, response)
-            .then((added: boolean) => {
-              return { transportName: transportConfiguration.constructor.name, added };
-            })
-            .catch(error => {
-              response.error("Failed to add transport", {
-                error,
-                transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
-              });
+      this._transportConfigurations.map(async (transportConfiguration: IWinstonTransportConfiguration) => {
+        let responseInternal: AddedTransportResult;
 
-              return { transportName: transportConfiguration.constructor.name, added: false };
+        if (!transportConfiguration) {
+          logger.log("silly", "Dafuq u adding undefined transport !?");
+          responseInternal = { transportName: transportConfiguration.constructor.name, added: false };
+        } else {
+          try {
+            let added: boolean = await this.AddTransportAsync(transportConfiguration, logger);
+            responseInternal = { transportName: transportConfiguration.constructor.name, added };
+          } catch (error) {
+            logger.error("Failed to add transport", {
+              error,
+              transport: { type: transportConfiguration.constructor.name, configuration: transportConfiguration }
             });
+
+            responseInternal = { transportName: transportConfiguration.constructor.name, added: false };
+          }
         }
 
         return responseInternal;
@@ -80,14 +83,15 @@ export class WinstonLoggerFactory implements IWinstonLoggerFactory {
     });
 
     let addedTransportCount: number = Object.keys(requestedTransports).filter((key: string) => requestedTransports[key]).length;
-    response.log("debug", `Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
+    logger.log("debug", `Added ${addedTransportCount} / ${this._transportConfigurations.length} transports`, {
       requestedTransports
     });
 
+    let response: TWinstonLogger = <TWinstonLogger>new WinstonLogger(logger);
     return response;
   }
 
-  public async GetWinstonLoggerAsync(): Promise<Logger> {
+  public async GetLoggerAsync(): Promise<TWinstonLogger> {
     if (!this._logger) {
       this._logger = this.InitWinstonLoggerAsync();
     }

@@ -1,8 +1,13 @@
-import { IWinstonLoggerFactory } from "common/logging/winston";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
+
 import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
 import { BaseTask } from "common/runtime/task";
 
-export class CreateMongoDbLogUserTask extends BaseTask {
+export class CreateMongoDbLogUserTask<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseTask<TLog, TLogger, TLoggerFactory> {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _mongoDbNewUser: IMongoDbUser;
@@ -12,7 +17,7 @@ export class CreateMongoDbLogUserTask extends BaseTask {
     mongoDbUser: IMongoDbUser,
     newMongoDbUser: IMongoDbUser,
     taskName: string,
-    loggerFactory: IWinstonLoggerFactory
+    loggerFactory: TLoggerFactory
   ) {
     super(taskName, loggerFactory);
 
@@ -27,41 +32,48 @@ export class CreateMongoDbLogUserTask extends BaseTask {
     try {
       response = await AddNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
 
-      if (this._logger) {
-        this._logger.log("verbose", "Created User", {
+      this._logger.Log(<TLog>{
+        level: "verbose",
+        message: "Created User",
+        meta: {
           connection: this._mongoDbConnection,
           user: this._mongoDbUser,
           newUser: this._mongoDbNewUser
-        });
+        }
+      });
 
-        response = true;
-      }
+      response = true;
     } catch (error) {
       if (error.name === "MongoError" && error.codeName === "DuplicateKey") {
-        if (this._logger) {
-          this._logger.log("verbose", "User already created", {
+        this._logger.Log(<TLog>{
+          level: "verbose",
+          message: "User already created",
+          meta: {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
-          });
-        }
+          }
+        });
       } else if (error.name === "MongoNetworkError") {
-        if (this._logger) {
-          this._logger.log("error", "Failed to create user: Server unreachable", {
+        this._logger.Log(<TLog>{
+          level: "error",
+          message: "Failed to create user: Server unreachable",
+          meta: {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
-          });
-        }
+          }
+        });
       } else {
-        if (this._logger) {
-          this._logger.log("error", "Failed to create user", {
-            error: error,
+        this._logger.Log(<TLog>{
+          level: "error",
+          message: "Failed to create user",
+          meta: {
             connection: this._mongoDbConnection,
             user: this._mongoDbUser,
             newUser: this._mongoDbNewUser
-          });
-        }
+          }
+        });
       }
     }
 

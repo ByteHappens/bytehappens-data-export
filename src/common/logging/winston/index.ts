@@ -1,5 +1,5 @@
 export { IWinstonTransportConfiguration } from "./interfaces/iwinstontransportconfiguration";
-export { IWinstonLoggerFactory } from "./interfaces/iwinstonloggerfactory";
 
 export { WinstonTransportConfiguration } from "./winstontransportconfiguration";
+export { WinstonLogger } from "./winstonlogger";
 export { WinstonLoggerFactory } from "./winstonloggerfactory";

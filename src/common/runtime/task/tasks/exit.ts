@@ -1,15 +1,18 @@
-import { IWinstonLoggerFactory } from "common/logging/winston";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
+
 import { BaseTask } from "../bases/basetask";
 
-export class Exit extends BaseTask {
-  public constructor(taskName: string, loggerFactory: IWinstonLoggerFactory) {
+export class Exit<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseTask<TLog, TLogger, TLoggerFactory> {
+  public constructor(taskName: string, loggerFactory: TLoggerFactory) {
     super(taskName, loggerFactory);
   }
 
   protected async ExecuteInternalAsync(): Promise<boolean> {
-    if (this._logger) {
-      this._logger.log("verbose", "Exiting");
-    }
+    this._logger.Log(<TLog>{ level: "verbose", message: "Exiting" });
 
     process.exit();
 

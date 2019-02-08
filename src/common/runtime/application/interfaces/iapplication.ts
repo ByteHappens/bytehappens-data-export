@@ -1,1 +1,3 @@
-export interface IApplication {}
+export interface IApplication {
+  InitAsync(): Promise<void>;
+}

@@ -1,8 +1,14 @@
 import { Request, Response, Router } from "express";
 
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
+
 import { BaseExpressRoute } from "./baseexpressroute";
 
-export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
+export abstract class BaseSimpleGetExpressRoute<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseExpressRoute<TLog, TLogger, TLoggerFactory> {
   protected abstract ProcessRequestInternal(request: Request, response: Response);
 
   public ProcessRequest(request: Request, response: Response): void {
@@ -10,9 +16,7 @@ export abstract class BaseSimpleGetExpressRoute extends BaseExpressRoute {
   }
 
   public GetRouter(): Router {
-    if (this._logger) {
-      this._logger.log("verbose", `Creating Router on ${this._path}`);
-    }
+    this._logger.Log(<TLog>{ level: "verbose", message: `Creating Router on ${this._path}` });
 
     let router: Router = Router();
     router.get(this._path, (request, response) => {

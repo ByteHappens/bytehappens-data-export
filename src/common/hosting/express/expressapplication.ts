@@ -1,12 +1,16 @@
 import * as express from "express";
 
-import { IWinstonLoggerFactory } from "common/logging/winston";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
 import { BaseStartableApplication } from "common/runtime/application";
 
 import { IExpressRoute } from "./interfaces/iexpressroute";
 import { IErrorHandler } from "./interfaces/ierrorhandler";
 
-export class ExpressApplication extends BaseStartableApplication {
+export class ExpressApplication<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseStartableApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _errorHandlers: IErrorHandler[];
@@ -18,7 +22,7 @@ export class ExpressApplication extends BaseStartableApplication {
     routes: IExpressRoute[],
     errorHandlers: IErrorHandler[],
     applicationName: string,
-    loggerFactory: IWinstonLoggerFactory
+    loggerFactory: TLoggerFactory
   ) {
     super(applicationName, loggerFactory);
 
@@ -29,7 +33,8 @@ export class ExpressApplication extends BaseStartableApplication {
     this._expressApplication = express();
   }
 
-  private Register(route: IExpressRoute): void {
+  private async RegisterAsync(route: IExpressRoute): Promise<void> {
+    await route.InitAsync();
     let router = route.GetRouter();
     this._expressApplication.use(router);
   }
@@ -40,24 +45,24 @@ export class ExpressApplication extends BaseStartableApplication {
     response: express.Response,
     next: express.NextFunction
   ): void {
-    if (this._logger) {
-      this._logger.log("error", "Something broke!", { error });
-    }
+    this._logger.Log(<TLog>{
+      level: "error",
+      message: "Something broke!",
+      meta: { error }
+    });
 
     response.status(500);
     response.send("Something broke!");
   }
 
   protected async StartInternalAsync(): Promise<void> {
-    if (this._logger) {
-      this._logger.log("verbose", `Listening on port ${this._port}`);
-    }
+    this._logger.Log(<TLog>{
+      level: "verbose",
+      message: `Listening on port ${this._port}`
+    });
 
     if (this._routes !== undefined) {
-      this._routes.forEach((route: IExpressRoute) => {
-        route.AttachLogger(this._logger);
-        this.Register(route);
-      });
+      await Promise.all(this._routes.map(async (route: IExpressRoute) => await this.RegisterAsync(route)));
     }
 
     if (this._errorHandlers !== undefined) {

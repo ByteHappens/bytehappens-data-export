@@ -1,15 +1,19 @@
 import { CronJob } from "cron";
 
-import { IWinstonLoggerFactory } from "common/logging/winston";
+import { ILog, ILogger, ILoggerFactory } from "common/logging";
 import { BaseStartableApplication } from "common/runtime/application";
 import { ITask } from "common/runtime/task";
 
-export class CronApplication extends BaseStartableApplication {
+export class CronApplication<
+  TLog extends ILog,
+  TLogger extends ILogger<TLog>,
+  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+> extends BaseStartableApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _cronTime: string;
   private readonly _task: ITask;
   private readonly _job: CronJob;
 
-  public constructor(task: ITask, cronTime: string, applicationName: string, loggerFactory: IWinstonLoggerFactory) {
+  public constructor(task: ITask, cronTime: string, applicationName: string, loggerFactory: TLoggerFactory) {
     super(applicationName, loggerFactory);
 
     this._cronTime = cronTime;
@@ -18,9 +22,10 @@ export class CronApplication extends BaseStartableApplication {
   }
 
   protected async StartInternalAsync(): Promise<void> {
-    if (this._logger) {
-      this._logger.log("verbose", `Starting ${this._applicationName} application with cron schedule ${this._cronTime}`);
-    }
+    this._logger.Log(<TLog>{
+      level: "verbose",
+      message: `Starting ${this._applicationName} application with cron schedule ${this._cronTime}`
+    });
 
     this._job.start();
   }
