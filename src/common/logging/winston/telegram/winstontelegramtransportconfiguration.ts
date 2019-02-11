@@ -1,10 +1,10 @@
 let Telegram = require("winston-telegram");
 
-import { WinstonTransportConfiguration } from "common/logging/winston";
+import { BaseWinstonTransportConfiguration } from "common/logging/winston";
 
 import { IWinstonTelegramTransportConfiguration } from "./interfaces/iwinstontelegramtransportconfiguration";
 
-export class WinstonTelegramTransportConfiguration extends WinstonTransportConfiguration
+export class WinstonTelegramTransportConfiguration extends BaseWinstonTransportConfiguration
   implements IWinstonTelegramTransportConfiguration {
   public readonly token: string;
   public readonly chatId: number;

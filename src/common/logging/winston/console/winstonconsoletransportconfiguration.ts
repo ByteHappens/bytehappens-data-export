@@ -1,10 +1,10 @@
 import { transports } from "winston";
 
-import { WinstonTransportConfiguration } from "common/logging/winston";
+import { BaseWinstonTransportConfiguration } from "common/logging/winston";
 
 import { IWinstonConsoleTransportConfiguration } from "./interfaces/iwinstonconsoletransportconfiguration";
 
-export class WinstonConsoleTransportConfiguration extends WinstonTransportConfiguration
+export class WinstonConsoleTransportConfiguration extends BaseWinstonTransportConfiguration
   implements IWinstonConsoleTransportConfiguration {
   constructor(level: string) {
     super(level);

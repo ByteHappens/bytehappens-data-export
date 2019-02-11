@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 let MongoDB = require("winston-mongodb").MongoDB;
 
-import { WinstonTransportConfiguration } from "common/logging/winston";
+import { BaseWinstonTransportConfiguration } from "common/logging/winston";
 import {
   IMongoDbConnection,
   IMongoDbUser,
@@ -12,7 +12,7 @@ import {
 
 import { IWinstonMongoDbTransportConfiguration } from "./interfaces/iwinstonmongodbtransportconfiguration";
 
-export class WinstonMongoDbTransportConfiguration extends WinstonTransportConfiguration
+export class WinstonMongoDbTransportConfiguration extends BaseWinstonTransportConfiguration
   implements IWinstonMongoDbTransportConfiguration {
   public readonly connection: IMongoDbConnection;
   public readonly user: IMongoDbUser;

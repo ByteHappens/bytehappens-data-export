@@ -1,6 +1,6 @@
-import { IWinstonTransportConfiguration } from "./interfaces/iwinstontransportconfiguration";
+import { IWinstonTransportConfiguration } from "../interfaces/iwinstontransportconfiguration";
 
-export abstract class WinstonTransportConfiguration implements IWinstonTransportConfiguration {
+export abstract class BaseWinstonTransportConfiguration implements IWinstonTransportConfiguration {
   public readonly level: string;
 
   constructor(level: string) {
