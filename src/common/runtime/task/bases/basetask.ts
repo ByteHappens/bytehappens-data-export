@@ -26,7 +26,7 @@ export abstract class BaseTask<
   protected async InitialiseInternalAsync(): Promise<void> {
     await super.InitialiseInternalAsync();
 
-    this._logger = await this._loggerFactory.GetLoggerAsync();
+    this._logger = await this._loggerFactory.CreateLoggerAsync();
   }
 
   protected async RunInternalAsync(): Promise<void> {

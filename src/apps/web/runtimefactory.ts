@@ -101,7 +101,7 @@ export class RuntimeFactory<
   }
 
   private async GetLoggerFactoryAsync(setupLoggerFactory: TSetupLoggerFactory): Promise<TLoggerFactory> {
-    let setupLogger: WinstonLogger<TLog> = await setupLoggerFactory.GetLoggerAsync();
+    let setupLogger: WinstonLogger<TLog> = await setupLoggerFactory.CreateLoggerAsync();
     let transportConfigurations: IWinstonTransportConfiguration[] = [];
 
     let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();

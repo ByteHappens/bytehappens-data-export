@@ -23,7 +23,7 @@ export abstract class BaseExpressRoute<
   public abstract GetRouter(): Router;
 
   private async InitInternalAsync(): Promise<void> {
-    this._logger = await this._loggerFactory.GetLoggerAsync();
+    this._logger = await this._loggerFactory.CreateLoggerAsync();
   }
 
   public async InitAsync(): Promise<void> {

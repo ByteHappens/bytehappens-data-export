@@ -91,7 +91,7 @@ export class WinstonLoggerFactory<TLog extends ILog, TWinstonLogger extends Wins
     return response;
   }
 
-  public async GetLoggerAsync(): Promise<TWinstonLogger> {
+  public async CreateLoggerAsync(): Promise<TWinstonLogger> {
     if (!this._logger) {
       this._logger = this.InitWinstonLoggerAsync();
     }
