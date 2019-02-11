@@ -8,7 +8,6 @@ import { IWinstonTransportConfiguration, WinstonLoggerFactory, WinstonLogger } f
 import {
   IWinstonConsoleTransportConfiguration,
   WinstonConsoleTransportConfiguration,
-  WinstonConsoleLogger,
   WinstonConsoleLoggerFactory
 } from "common/logging/winston/console";
 import { IWinstonMongoDbTransportConfiguration, WinstonMongoDbTransportConfiguration } from "common/logging/winston/mongodb";
