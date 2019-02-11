@@ -174,7 +174,7 @@ export class Initialiser<
       routes,
       undefined,
       applicationName,
-      startupLoggerFactory
+      loggerFactory
     );
     let task: ITask = new StartApplication(application, `Start${applicationName}`, startupLoggerFactory);
     return task;
