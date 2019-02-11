@@ -4,7 +4,5 @@ export { BaseTask } from "./bases/basetask";
 
 export { TaskChain } from "./tasks/taskchain";
 export { RetriableTask } from "./tasks/retriabletask";
-export { StartApplication } from "./tasks/startapplication";
-export { Exit } from "./tasks/exit";
-
-export { TaskRunner } from "./applications/taskrunner";
+export { ApplicationTask } from "./tasks/applicationtask";
+export { ExitTask } from "./tasks/exittask";

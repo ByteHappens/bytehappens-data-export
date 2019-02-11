@@ -1,14 +1,14 @@
 import { CronJob } from "cron";
 
 import { ILog, ILogger, ILoggerFactory } from "common/logging";
-import { BaseStartableApplication } from "common/runtime/application";
+import { BaseApplication } from "common/runtime/application";
 import { ITask } from "common/runtime/task";
 
 export class CronApplication<
   TLog extends ILog,
   TLogger extends ILogger<TLog>,
   TLoggerFactory extends ILoggerFactory<TLog, TLogger>
-> extends BaseStartableApplication<TLog, TLogger, TLoggerFactory> {
+> extends BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _cronTime: string;
   private readonly _task: ITask;
   private readonly _job: CronJob;
@@ -18,7 +18,7 @@ export class CronApplication<
 
     this._cronTime = cronTime;
     this._task = task;
-    this._job = new CronJob(this._cronTime, async () => await this._task.ExecuteAsync());
+    this._job = new CronJob(this._cronTime, async () => await this._task.RunAsync());
   }
 
   protected async StartInternalAsync(): Promise<void> {

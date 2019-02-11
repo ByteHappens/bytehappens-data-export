@@ -34,7 +34,8 @@ export class RetriableTask<
     let shouldRetry: boolean = false;
     do {
       try {
-        response = await this._onExecute.ExecuteAsync();
+        await this._onExecute.RunAsync();
+        response = await this._onExecute.GetResultAsync();
       } catch (error) {
         this._logger.Log(<TLog>{ level: "error", message: "Unexpected error when running task", meta: { error } });
       }

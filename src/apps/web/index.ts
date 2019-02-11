@@ -1,8 +1,8 @@
 require("module-alias/register");
 
-import { ITask } from "common/runtime/task";
+import { IRuntime } from "common/runtime";
 
-import { Initialiser } from "./initialiser";
+import { RuntimeFactory } from "./runtimefactory";
 
-let initialser = new Initialiser();
-initialser.InitialiseAsync().then(async (task: ITask) => await task.ExecuteAsync());
+let runtimeFactory = new RuntimeFactory();
+runtimeFactory.CreateRuntimeAsync().then(async (runtime: IRuntime) => await runtime.RunAsync());

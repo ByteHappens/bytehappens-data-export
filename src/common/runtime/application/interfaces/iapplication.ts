@@ -1,3 +1,3 @@
-export interface IApplication {
-  InitAsync(): Promise<void>;
-}
+import { IRuntime } from "common/runtime";
+
+export interface IApplication extends IRuntime {}

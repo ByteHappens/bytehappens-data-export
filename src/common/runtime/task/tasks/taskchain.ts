@@ -33,7 +33,8 @@ export class TaskChain<
     let taskResponse: boolean = false;
 
     try {
-      taskResponse = await this._onExecute.ExecuteAsync();
+      await this._onExecute.RunAsync();
+      taskResponse = await this._onExecute.GetResultAsync();
     } catch (error) {
       this._logger.Log(<TLog>{ level: "error", message: "Unexpected error when running task", meta: { error } });
     }
@@ -42,11 +43,13 @@ export class TaskChain<
     if (taskResponse) {
       this._logger.Log(<TLog>{ level: "verbose", message: `Running OnSuccess after ${this._taskName}` });
 
-      response = await this._onSuccess.ExecuteAsync();
+      await this._onFailure.RunAsync();
+      response = await this._onSuccess.GetResultAsync();
     } else {
       this._logger.Log(<TLog>{ level: "verbose", message: `Running OnFailure after ${this._taskName}` });
 
-      response = await this._onFailure.ExecuteAsync();
+      await this._onFailure.RunAsync();
+      response = await this._onFailure.GetResultAsync();
     }
 
     return response;

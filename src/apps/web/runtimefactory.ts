@@ -1,7 +1,4 @@
-import { BaseInititaliser } from "common/runtime/init";
-
-import { IStartableApplication } from "common/runtime/application";
-import { ITask, TaskChain, StartApplication, RetriableTask } from "common/runtime/task";
+import { IRuntime, IRuntimeFactory, BaseRuntime } from "common/runtime";
 
 import { ILog } from "common/logging";
 import { IWinstonTransportConfiguration, WinstonLoggerFactory, WinstonLogger } from "common/logging/winston";
@@ -15,6 +12,8 @@ import { IWinstonTelegramTransportConfiguration, WinstonTelegramTransportConfigu
 
 import { IMongoDbConnection, IMongoDbUser } from "common/storage/mongodb";
 
+import { IApplication } from "common/runtime/application";
+import { ITask, TaskChain, ApplicationTask, RetriableTask } from "common/runtime/task";
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
 import { CreateMongoDbLogUserTask } from "./tasks/createmongodbusertask";
@@ -23,12 +22,12 @@ import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
-export class Initialiser<
+export class RuntimeFactory<
   TLog extends ILog,
   TLogger extends WinstonLogger<TLog>,
   TLoggerFactory extends WinstonLoggerFactory<TLog, TLogger>,
   TSetupLoggerFactory extends WinstonConsoleLoggerFactory<TLog>
-> extends BaseInititaliser<ITask> {
+> implements IRuntimeFactory<ITask> {
   private LoadWinstonConsoleTransportConfiguration(): IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
     return new WinstonConsoleTransportConfiguration(level);
@@ -168,18 +167,12 @@ export class Initialiser<
       new DataExportRoute("/products.csv", loggerFactory)
     ];
 
-    let application: IStartableApplication = new ExpressApplication(
-      port,
-      routes,
-      undefined,
-      applicationName,
-      loggerFactory
-    );
-    let task: ITask = new StartApplication(application, `Start${applicationName}`, startupLoggerFactory);
+    let application: IApplication = new ExpressApplication(port, routes, undefined, applicationName, loggerFactory);
+    let task: ITask = new ApplicationTask(application, `Start${applicationName}`, startupLoggerFactory);
     return task;
   }
 
-  protected async InitialiseInternalAsync(): Promise<ITask> {
+  public async CreateRuntimeAsync(): Promise<ITask> {
     let response: ITask;
 
     let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();

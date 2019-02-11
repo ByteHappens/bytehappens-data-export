@@ -2,7 +2,7 @@ import { ILog, ILogger, ILoggerFactory } from "common/logging";
 
 import { BaseTask } from "../bases/basetask";
 
-export class Exit<
+export class ExitTask<
   TLog extends ILog,
   TLogger extends ILogger<TLog>,
   TLoggerFactory extends ILoggerFactory<TLog, TLogger>

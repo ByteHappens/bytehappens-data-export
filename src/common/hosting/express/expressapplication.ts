@@ -1,7 +1,7 @@
 import * as express from "express";
 
 import { ILog, ILogger, ILoggerFactory } from "common/logging";
-import { BaseStartableApplication } from "common/runtime/application";
+import { BaseApplication } from "common/runtime/application";
 
 import { IExpressRoute } from "./interfaces/iexpressroute";
 import { IErrorHandler } from "./interfaces/ierrorhandler";
@@ -10,7 +10,7 @@ export class ExpressApplication<
   TLog extends ILog,
   TLogger extends ILogger<TLog>,
   TLoggerFactory extends ILoggerFactory<TLog, TLogger>
-> extends BaseStartableApplication<TLog, TLogger, TLoggerFactory> {
+> extends BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _errorHandlers: IErrorHandler[];
