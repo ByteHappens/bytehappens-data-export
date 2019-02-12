@@ -1,13 +1,12 @@
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
+import { logging, task } from "bytehappens";
 
 import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
-import { BaseTask } from "common/runtime/task";
 
 export class CreateMongoDbLogUserTask<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
-> extends BaseTask<TLog, TLogger, TLoggerFactory> {
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
+> extends task.BaseTask<TLog, TLogger, TLoggerFactory> {
   private readonly _mongoDbConnection: IMongoDbConnection;
   private readonly _mongoDbUser: IMongoDbUser;
   private readonly _mongoDbNewUser: IMongoDbUser;

@@ -1,6 +1,5 @@
 import { Logger, LoggerOptions, createLogger, format } from "winston";
-
-import { ILog, ILoggerFactory } from "common/logging";
+import { logging } from "bytehappens";
 
 import { IWinstonTransportConfiguration } from "./interfaces/iwinstontransportconfiguration";
 import { WinstonLogger } from "./winstonlogger";
@@ -10,8 +9,8 @@ interface AddedTransportResult {
   added: boolean;
 }
 
-export class WinstonLoggerFactory<TLog extends ILog, TWinstonLogger extends WinstonLogger<TLog>>
-  implements ILoggerFactory<TLog, TWinstonLogger> {
+export class WinstonLoggerFactory<TLog extends logging.ILog, TWinstonLogger extends WinstonLogger<TLog>>
+  implements logging.ILoggerFactory<TLog, TWinstonLogger> {
   private readonly _level: string;
   private readonly _transportConfigurations: IWinstonTransportConfiguration[];
 

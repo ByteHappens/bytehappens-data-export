@@ -1,13 +1,12 @@
 import { Request, Response, Router } from "express";
-
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
+import { logging } from "bytehappens";
 
 import { BaseExpressRoute } from "./baseexpressroute";
 
 export abstract class BaseSimpleGetExpressRoute<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > extends BaseExpressRoute<TLog, TLogger, TLoggerFactory> {
   protected abstract ProcessRequestInternal(request: Request, response: Response);
 

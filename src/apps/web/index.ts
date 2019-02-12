@@ -1,8 +1,8 @@
 require("module-alias/register");
 
-import { IRuntime } from "common/runtime";
+import { runtime } from "bytehappens";
 
 import { RuntimeFactory } from "./runtimefactory";
 
 let runtimeFactory = new RuntimeFactory();
-runtimeFactory.CreateRuntimeAsync().then(async (runtime: IRuntime) => await runtime.RunAsync());
+runtimeFactory.CreateRuntimeAsync().then(async (runtime: runtime.IRuntime) => await runtime.RunAsync());

@@ -1,4 +1,4 @@
-import { MongoClient, MongoClientOptions, Db, DbAddUserOptions } from "mongodb";
+import { MongoClient, Db, DbAddUserOptions } from "mongodb";
 
 import { IMongoDbConnection } from "../interfaces/imongodbconnection";
 import { IMongoDbUser } from "../interfaces/imongodbuser";

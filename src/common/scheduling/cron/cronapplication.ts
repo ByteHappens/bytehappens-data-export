@@ -1,19 +1,16 @@
 import { CronJob } from "cron";
-
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
-import { BaseApplication } from "common/runtime/application";
-import { ITask } from "common/runtime/task";
+import { logging, application, task } from "bytehappens";
 
 export class CronApplication<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
-> extends BaseApplication<TLog, TLogger, TLoggerFactory> {
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
+> extends application.BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _cronTime: string;
-  private readonly _task: ITask;
+  private readonly _task: task.ITask;
   private readonly _job: CronJob;
 
-  public constructor(task: ITask, cronTime: string, applicationName: string, loggerFactory: TLoggerFactory) {
+  public constructor(task: task.ITask, cronTime: string, applicationName: string, loggerFactory: TLoggerFactory) {
     super(applicationName, loggerFactory);
 
     this._cronTime = cronTime;

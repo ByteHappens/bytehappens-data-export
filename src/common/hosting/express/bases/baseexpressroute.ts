@@ -1,13 +1,12 @@
 import { Router } from "express";
-
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
+import { logging } from "bytehappens";
 
 import { IExpressRoute } from "../interfaces/iexpressroute";
 
 export abstract class BaseExpressRoute<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > implements IExpressRoute {
   private readonly _loggerFactory: TLoggerFactory;
   private _init: Promise<void>;
@@ -30,7 +29,7 @@ export abstract class BaseExpressRoute<
     if (!this._init) {
       this._init = this.InitInternalAsync();
     }
-    
+
     return this._init;
   }
 }

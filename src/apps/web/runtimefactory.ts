@@ -1,6 +1,5 @@
-import { IRuntime, IRuntimeFactory, BaseRuntime } from "common/runtime";
+import { logging, runtime, application, task } from "bytehappens";
 
-import { ILog } from "common/logging";
 import { IWinstonTransportConfiguration, WinstonLoggerFactory, WinstonLogger } from "common/logging/winston";
 import {
   IWinstonConsoleTransportConfiguration,
@@ -9,11 +8,7 @@ import {
 } from "common/logging/winston/console";
 import { IWinstonMongoDbTransportConfiguration, WinstonMongoDbTransportConfiguration } from "common/logging/winston/mongodb";
 import { IWinstonTelegramTransportConfiguration, WinstonTelegramTransportConfiguration } from "common/logging/winston/telegram";
-
 import { IMongoDbConnection, IMongoDbUser } from "common/storage/mongodb";
-
-import { IApplication } from "common/runtime/application";
-import { ITask, TaskChain, ApplicationTask, RetriableTask } from "common/runtime/task";
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
 import { CreateMongoDbLogUserTask } from "./tasks/createmongodbusertask";
@@ -23,11 +18,11 @@ import { StatusRoute } from "./routes/statusroute";
 import { DataExportRoute } from "./routes/dataexportroute";
 
 export class RuntimeFactory<
-  TLog extends ILog,
+  TLog extends logging.ILog,
   TLogger extends WinstonLogger<TLog>,
   TLoggerFactory extends WinstonLoggerFactory<TLog, TLogger>,
   TSetupLoggerFactory extends WinstonConsoleLoggerFactory<TLog>
-> implements IRuntimeFactory<ITask> {
+> implements runtime.IRuntimeFactory<task.ITask> {
   private LoadWinstonConsoleTransportConfiguration(): IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
     return new WinstonConsoleTransportConfiguration(level);
@@ -116,8 +111,8 @@ export class RuntimeFactory<
     return <TLoggerFactory>new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
   }
 
-  private GetCreateMongoDbLogUserTask(setupLoggerFactory: TSetupLoggerFactory): ITask {
-    let response: ITask;
+  private GetCreateMongoDbLogUserTask(setupLoggerFactory: TSetupLoggerFactory): task.ITask {
+    let response: task.ITask;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
     if (useMongoDb) {
@@ -145,7 +140,7 @@ export class RuntimeFactory<
       };
 
       response = new CreateMongoDbLogUserTask(connection, user, newUser, "CreateMongoDbLogUser", setupLoggerFactory);
-      response = new RetriableTask(response, 2, 10000, "RetryCreateMongoDbLogUser", setupLoggerFactory);
+      response = new task.RetriableTask(response, 2, 10000, "RetryCreateMongoDbLogUser", setupLoggerFactory);
     }
 
     return response;
@@ -154,7 +149,7 @@ export class RuntimeFactory<
   private GetExpressApplicationTask(
     loggerFactory: TLoggerFactory,
     startupLoggerFactory: WinstonConsoleLoggerFactory<TLog>
-  ): ITask {
+  ): task.ITask {
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
 
@@ -167,13 +162,13 @@ export class RuntimeFactory<
       new DataExportRoute("/products.csv", loggerFactory)
     ];
 
-    let application: IApplication = new ExpressApplication(port, routes, undefined, applicationName, loggerFactory);
-    let task: ITask = new ApplicationTask(application, `Start${applicationName}`, startupLoggerFactory);
-    return task;
+    let application: application.IApplication = new ExpressApplication(port, routes, undefined, applicationName, loggerFactory);
+    let applicationTask: task.ITask = new task.ApplicationTask(application, `Start${applicationName}`, startupLoggerFactory);
+    return applicationTask;
   }
 
-  public async CreateRuntimeAsync(): Promise<ITask> {
-    let response: ITask;
+  public async CreateRuntimeAsync(): Promise<task.ITask> {
+    let response: task.ITask;
 
     let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
     let setupLoggerFactory: TSetupLoggerFactory = <TSetupLoggerFactory>(
@@ -182,12 +177,12 @@ export class RuntimeFactory<
 
     let loggerFactory: TLoggerFactory = await this.GetLoggerFactoryAsync(setupLoggerFactory);
 
-    let createMongoDbLogUserTask: ITask = this.GetCreateMongoDbLogUserTask(setupLoggerFactory);
-    let serverTask: ITask = this.GetExpressApplicationTask(loggerFactory, setupLoggerFactory);
+    let createMongoDbLogUserTask: task.ITask = this.GetCreateMongoDbLogUserTask(setupLoggerFactory);
+    let serverTask: task.ITask = this.GetExpressApplicationTask(loggerFactory, setupLoggerFactory);
 
     if (createMongoDbLogUserTask) {
       //  EBU: Start Server regardless of success
-      response = new TaskChain(createMongoDbLogUserTask, serverTask, serverTask, "SetupTaskChain", setupLoggerFactory);
+      response = new task.TaskChain(createMongoDbLogUserTask, serverTask, serverTask, "SetupTaskChain", setupLoggerFactory);
     } else {
       response = serverTask;
     }

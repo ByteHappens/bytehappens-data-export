@@ -1,16 +1,15 @@
 import * as express from "express";
 
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
-import { BaseApplication } from "common/runtime/application";
+import { logging, application } from "bytehappens";
 
 import { IExpressRoute } from "./interfaces/iexpressroute";
 import { IErrorHandler } from "./interfaces/ierrorhandler";
 
 export class ExpressApplication<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
-> extends BaseApplication<TLog, TLogger, TLoggerFactory> {
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
+> extends application.BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _errorHandlers: IErrorHandler[];

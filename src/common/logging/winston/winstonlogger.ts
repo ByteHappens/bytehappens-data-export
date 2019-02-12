@@ -1,8 +1,7 @@
 import { Logger } from "winston";
+import { logging } from "bytehappens";
 
-import { ILog, ILogger } from "common/logging";
-
-export class WinstonLogger<TLog extends ILog> implements ILogger<TLog> {
+export class WinstonLogger<TLog extends logging.ILog> implements logging.ILogger<TLog> {
   private readonly _logger: Logger;
 
   public constructor(logger: Logger) {

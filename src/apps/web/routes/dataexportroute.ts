@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { Parser } from "json2csv";
+import { logging } from "bytehappens";
 
-import { ILog, ILogger, ILoggerFactory } from "common/logging";
 import { BaseSimpleGetExpressRoute } from "common/hosting/express";
 
 export class DataExportRoute<
-  TLog extends ILog,
-  TLogger extends ILogger<TLog>,
-  TLoggerFactory extends ILoggerFactory<TLog, TLogger>
+  TLog extends logging.ILog,
+  TLogger extends logging.ILogger<TLog>,
+  TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > extends BaseSimpleGetExpressRoute<TLog, TLogger, TLoggerFactory> {
   private GetFields(): string[] {
     return ["Sku", "Title", "Short Description", "Long Description", "Price", "In Stock", "Stock", "Delivery (days)"];
