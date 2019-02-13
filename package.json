@@ -21,7 +21,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "bytehappens": "0.0.1",
+    "bytehappens": "0.0.2",
     "cron": "^1.6.0",
     "express": "^4.16.3",
     "json2csv": "^4.3.3",
