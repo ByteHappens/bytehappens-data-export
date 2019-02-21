@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "bytehappens": "0.0.2",
+    "bytehappens-logging-winston": "0.0.4",
+    "bytehappens-storage-mongodb": "0.0.4",
     "cron": "^1.6.0",
     "express": "^4.16.3",
     "json2csv": "^4.3.3",

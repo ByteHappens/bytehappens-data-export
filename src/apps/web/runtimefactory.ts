@@ -1,14 +1,7 @@
 import { logging, runtime, application, task } from "bytehappens";
+import { mongodb } from "bytehappens-storage-mongodb";
+import { loggingWinston, loggingConsole, loggingTelegram, loggingMongoDb } from "bytehappens-logging-winston";
 
-import { IWinstonTransportConfiguration, WinstonLoggerFactory, WinstonLogger } from "common/logging/winston";
-import {
-  IWinstonConsoleTransportConfiguration,
-  WinstonConsoleTransportConfiguration,
-  WinstonConsoleLoggerFactory
-} from "common/logging/winston/console";
-import { IWinstonMongoDbTransportConfiguration, WinstonMongoDbTransportConfiguration } from "common/logging/winston/mongodb";
-import { IWinstonTelegramTransportConfiguration, WinstonTelegramTransportConfiguration } from "common/logging/winston/telegram";
-import { IMongoDbConnection, IMongoDbUser } from "common/storage/mongodb";
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
 import { CreateMongoDbLogUserTask } from "./tasks/createmongodbusertask";
@@ -19,17 +12,33 @@ import { DataExportRoute } from "./routes/dataexportroute";
 
 export class RuntimeFactory<
   TLog extends logging.ILog,
-  TLogger extends WinstonLogger<TLog>,
-  TLoggerFactory extends WinstonLoggerFactory<TLog, TLogger>,
-  TSetupLoggerFactory extends WinstonConsoleLoggerFactory<TLog>
+  TLogger extends loggingWinston.WinstonLogger<TLog>,
+  TLoggerFactory extends loggingWinston.WinstonLoggerFactory<TLog, TLogger>,
+  TSetupLoggerFactory extends loggingConsole.WinstonConsoleLoggerFactory<TLog>
 > implements runtime.IRuntimeFactory<task.ITask> {
-  private LoadWinstonConsoleTransportConfiguration(): IWinstonConsoleTransportConfiguration {
+  private LoadWinstonConsoleTransportConfiguration(): loggingConsole.IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
-    return new WinstonConsoleTransportConfiguration(level);
+    return new loggingConsole.WinstonConsoleTransportConfiguration(level);
   }
 
-  private LoadWinstonMongoDbTransportConfiguration(): IWinstonMongoDbTransportConfiguration {
-    let response: IWinstonMongoDbTransportConfiguration = undefined;
+  private LoadWinstonTelegramTransportConfiguration(): loggingTelegram.IWinstonTelegramTransportConfiguration {
+    let response: loggingTelegram.IWinstonTelegramTransportConfiguration = undefined;
+
+    let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
+    if (useTelegram) {
+      let level: string = process.env.LOGGING_TELEGRAM_LEVEL;
+      let token: string = process.env.LOGGING_TELEGRAM_TOKEN;
+      let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
+      let disableNotification: boolean = process.env.LOGGING_TELEGRAM_DISABLE_NOTIFICATION === "true";
+
+      response = new loggingTelegram.WinstonTelegramTransportConfiguration(token, chatId, disableNotification, level);
+    }
+
+    return response;
+  }
+
+  private LoadWinstonMongoDbTransportConfiguration(): loggingMongoDb.IWinstonMongoDbTransportConfiguration {
+    let response: loggingMongoDb.IWinstonMongoDbTransportConfiguration = undefined;
 
     let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
     if (useMongoDb) {
@@ -41,7 +50,7 @@ export class RuntimeFactory<
       let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
       let collection: string = process.env.WEB_APP_NAME;
 
-      response = new WinstonMongoDbTransportConfiguration(
+      response = new loggingMongoDb.WinstonMongoDbTransportConfiguration(
         {
           host: host,
           port: port
@@ -59,26 +68,10 @@ export class RuntimeFactory<
     return response;
   }
 
-  private LoadWinstonTelegramTransportConfiguration(): IWinstonTelegramTransportConfiguration {
-    let response: IWinstonTelegramTransportConfiguration = undefined;
-
-    let useTelegram: boolean = process.env.LOGGING_TELEGRAM_USE === "true";
-    if (useTelegram) {
-      let level: string = process.env.LOGGING_TELEGRAM_LEVEL;
-      let token: string = process.env.LOGGING_TELEGRAM_TOKEN;
-      let chatId: number = parseInt(process.env.LOGGING_TELEGRAM_CHAT_ID);
-      let disableNotification: boolean = process.env.LOGGING_TELEGRAM_DISABLE_NOTIFICATION === "true";
-
-      response = new WinstonTelegramTransportConfiguration(token, chatId, disableNotification, level);
-    }
-
-    return response;
-  }
-
   private AddTransportConfiguration(
-    current: IWinstonTransportConfiguration,
-    existing: IWinstonTransportConfiguration[],
-    setupLogger: WinstonLogger<TLog>
+    current: loggingWinston.IWinstonTransportConfiguration,
+    existing: loggingWinston.IWinstonTransportConfiguration[],
+    setupLogger: loggingWinston.WinstonLogger<TLog>
   ) {
     if (current) {
       try {
@@ -96,19 +89,21 @@ export class RuntimeFactory<
   }
 
   private async GetLoggerFactoryAsync(setupLoggerFactory: TSetupLoggerFactory): Promise<TLoggerFactory> {
-    let setupLogger: WinstonLogger<TLog> = await setupLoggerFactory.CreateLoggerAsync();
-    let transportConfigurations: IWinstonTransportConfiguration[] = [];
+    let setupLogger: loggingWinston.WinstonLogger<TLog> = await setupLoggerFactory.CreateLoggerAsync();
+    let transportConfigurations: loggingWinston.IWinstonTransportConfiguration[] = [];
 
-    let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
+    let consoleTransportConfiguration: loggingConsole.IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
     this.AddTransportConfiguration(consoleTransportConfiguration, transportConfigurations, setupLogger);
 
-    let mongoDbTransportConfiguration: IWinstonMongoDbTransportConfiguration = this.LoadWinstonMongoDbTransportConfiguration();
-    this.AddTransportConfiguration(mongoDbTransportConfiguration, transportConfigurations, setupLogger);
-
-    let telegramTransportConfiguration: IWinstonTelegramTransportConfiguration = this.LoadWinstonTelegramTransportConfiguration();
+    let telegramTransportConfiguration: loggingTelegram.IWinstonTelegramTransportConfiguration = this.LoadWinstonTelegramTransportConfiguration();
     this.AddTransportConfiguration(telegramTransportConfiguration, transportConfigurations, setupLogger);
 
-    return <TLoggerFactory>new WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations);
+    let mongoDbTransportConfiguration: loggingMongoDb.IWinstonMongoDbTransportConfiguration = this.LoadWinstonMongoDbTransportConfiguration();
+    this.AddTransportConfiguration(mongoDbTransportConfiguration, transportConfigurations, setupLogger);
+
+    return <TLoggerFactory>(
+      new loggingWinston.WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations)
+    );
   }
 
   private GetCreateMongoDbLogUserTask(setupLoggerFactory: TSetupLoggerFactory): task.ITask {
@@ -118,14 +113,14 @@ export class RuntimeFactory<
     if (useMongoDb) {
       let host: string = process.env.LOGGING_MONGODB_HOST;
       let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
-      let connection: IMongoDbConnection = {
+      let connection: mongodb.IMongoDbConnection = {
         host: host,
         port: port
       };
 
       let username: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
       let password: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
-      let user: IMongoDbUser = {
+      let user: mongodb.IMongoDbUser = {
         username: username,
         password: password
       };
@@ -133,7 +128,7 @@ export class RuntimeFactory<
       let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
       let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
       let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-      let newUser: IMongoDbUser = {
+      let newUser: mongodb.IMongoDbUser = {
         username: newUsername,
         password: newPassword,
         databaseName: databaseName
@@ -148,7 +143,7 @@ export class RuntimeFactory<
 
   private GetExpressApplicationTask(
     loggerFactory: TLoggerFactory,
-    startupLoggerFactory: WinstonConsoleLoggerFactory<TLog>
+    startupLoggerFactory: loggingConsole.WinstonConsoleLoggerFactory<TLog>
   ): task.ITask {
     let applicationName: string = process.env.WEB_APP_NAME;
     let port: number = parseInt(process.env.WEB_PORT || process.env.PORT);
@@ -170,9 +165,9 @@ export class RuntimeFactory<
   public async CreateRuntimeAsync(): Promise<task.ITask> {
     let response: task.ITask;
 
-    let consoleTransportConfiguration: IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
+    let consoleTransportConfiguration: loggingConsole.IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
     let setupLoggerFactory: TSetupLoggerFactory = <TSetupLoggerFactory>(
-      new WinstonConsoleLoggerFactory<TLog>(consoleTransportConfiguration.level, consoleTransportConfiguration)
+      new loggingConsole.WinstonConsoleLoggerFactory<TLog>(consoleTransportConfiguration.level, consoleTransportConfiguration)
     );
 
     let loggerFactory: TLoggerFactory = await this.GetLoggerFactoryAsync(setupLoggerFactory);

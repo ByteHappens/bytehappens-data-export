@@ -1,20 +1,44 @@
 import { logging, task } from "bytehappens";
 
-import { IMongoDbConnection, IMongoDbUser, AddNewUserAsync } from "common/storage/mongodb";
+import { MongoClient, Db, DbAddUserOptions } from "mongodb";
+import { mongodb } from "bytehappens-storage-mongodb";
+
+async function AddNewUserAsync(
+  mongoDbConfiguration: mongodb.IMongoDbConnection,
+  mongoDbUser: mongodb.IMongoDbUser,
+  newMongoDbUser: mongodb.IMongoDbUser
+): Promise<boolean> {
+  let client: MongoClient = await mongodb.CreateMongoDbClientAsync(mongoDbConfiguration, mongoDbUser);
+
+  let databaseName: string = newMongoDbUser.databaseName;
+  let options: DbAddUserOptions = {
+    roles: [
+      {
+        role: "readWrite",
+        db: newMongoDbUser.databaseName
+      }
+    ]
+  };
+
+  let db: Db = client.db(databaseName);
+  await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
+
+  return true;
+}
 
 export class CreateMongoDbLogUserTask<
   TLog extends logging.ILog,
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > extends task.BaseTask<TLog, TLogger, TLoggerFactory> {
-  private readonly _mongoDbConnection: IMongoDbConnection;
-  private readonly _mongoDbUser: IMongoDbUser;
-  private readonly _mongoDbNewUser: IMongoDbUser;
+  private readonly _mongoDbConnection: mongodb.IMongoDbConnection;
+  private readonly _mongoDbUser: mongodb.IMongoDbUser;
+  private readonly _mongoDbNewUser: mongodb.IMongoDbUser;
 
   public constructor(
-    mongoDbConnection: IMongoDbConnection,
-    mongoDbUser: IMongoDbUser,
-    newMongoDbUser: IMongoDbUser,
+    mongoDbConnection: mongodb.IMongoDbConnection,
+    mongoDbUser: mongodb.IMongoDbUser,
+    newMongoDbUser: mongodb.IMongoDbUser,
     taskName: string,
     loggerFactory: TLoggerFactory
   ) {
