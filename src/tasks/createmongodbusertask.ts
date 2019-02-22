@@ -3,29 +3,6 @@ import { logging, runtimes } from "bytehappens";
 import { MongoClient, Db, DbAddUserOptions } from "mongodb";
 import { storageMongoDb } from "bytehappens-storage-mongodb";
 
-async function AddNewUserAsync(
-  mongoDbConfiguration: storageMongoDb.core.IMongoDbConnection,
-  mongoDbUser: storageMongoDb.core.IMongoDbUser,
-  newMongoDbUser: storageMongoDb.core.IMongoDbUser
-): Promise<boolean> {
-  let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(mongoDbConfiguration, mongoDbUser);
-
-  let databaseName: string = newMongoDbUser.databaseName;
-  let options: DbAddUserOptions = {
-    roles: [
-      {
-        role: "readWrite",
-        db: newMongoDbUser.databaseName
-      }
-    ]
-  };
-
-  let db: Db = client.db(databaseName);
-  await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
-
-  return true;
-}
-
 export class CreateMongoDbLogUserTask<
   TLog extends logging.ILog,
   TLogger extends logging.ILogger<TLog>,
@@ -49,11 +26,34 @@ export class CreateMongoDbLogUserTask<
     this._mongoDbNewUser = newMongoDbUser;
   }
 
+  private async AddNewUserAsync(
+    mongoDbConfiguration: storageMongoDb.core.IMongoDbConnection,
+    mongoDbUser: storageMongoDb.core.IMongoDbUser,
+    newMongoDbUser: storageMongoDb.core.IMongoDbUser
+  ): Promise<boolean> {
+    let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(mongoDbConfiguration, mongoDbUser);
+
+    let databaseName: string = newMongoDbUser.databaseName;
+    let options: DbAddUserOptions = {
+      roles: [
+        {
+          role: "readWrite",
+          db: newMongoDbUser.databaseName
+        }
+      ]
+    };
+
+    let db: Db = client.db(databaseName);
+    await db.addUser(newMongoDbUser.username, newMongoDbUser.password, options);
+
+    return true;
+  }
+
   protected async ExecuteInternalAsync(): Promise<boolean> {
     let response: boolean = false;
 
     try {
-      response = await AddNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
+      response = await this.AddNewUserAsync(this._mongoDbConnection, this._mongoDbUser, this._mongoDbNewUser);
 
       this._logger.Log(<TLog>{
         level: "verbose",
