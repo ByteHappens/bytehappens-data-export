@@ -1,6 +1,7 @@
+import { Server } from "http";
 import * as express from "express";
 
-import { logging, application } from "bytehappens";
+import { logging, runtimes } from "bytehappens";
 
 import { IExpressRoute } from "./interfaces/iexpressroute";
 import { IErrorHandler } from "./interfaces/ierrorhandler";
@@ -9,12 +10,13 @@ export class ExpressApplication<
   TLog extends logging.ILog,
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
-> extends application.BaseApplication<TLog, TLogger, TLoggerFactory> {
+> extends runtimes.applications.BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _port: number;
   private readonly _routes: IExpressRoute[];
   private readonly _errorHandlers: IErrorHandler[];
 
   private readonly _expressApplication: express.Application;
+  private _expressServer: Server;
 
   public constructor(
     port: number,
@@ -81,6 +83,11 @@ export class ExpressApplication<
       }
     );
 
-    this._expressApplication.listen(this._port);
+    this._expressServer = this._expressApplication.listen(this._port);
+  }
+
+  protected async StopInternalAsync(): Promise<boolean> {
+    this._expressServer.close();
+    return true;
   }
 }

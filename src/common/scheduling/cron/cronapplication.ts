@@ -1,16 +1,16 @@
 import { CronJob } from "cron";
-import { logging, application, task } from "bytehappens";
+import { logging, runtimes } from "bytehappens";
 
 export class CronApplication<
   TLog extends logging.ILog,
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
-> extends application.BaseApplication<TLog, TLogger, TLoggerFactory> {
+> extends runtimes.applications.BaseApplication<TLog, TLogger, TLoggerFactory> {
   private readonly _cronTime: string;
-  private readonly _task: task.ITask;
+  private readonly _task: runtimes.tasks.ITask;
   private readonly _job: CronJob;
 
-  public constructor(task: task.ITask, cronTime: string, applicationName: string, loggerFactory: TLoggerFactory) {
+  public constructor(task: runtimes.tasks.ITask, cronTime: string, applicationName: string, loggerFactory: TLoggerFactory) {
     super(applicationName, loggerFactory);
 
     this._cronTime = cronTime;
@@ -25,5 +25,11 @@ export class CronApplication<
     });
 
     this._job.start();
+  }
+
+  protected async StopInternalAsync(): Promise<boolean> {
+    this._job.stop();
+    
+    return true;
   }
 }

@@ -1,14 +1,14 @@
-import { logging, task } from "bytehappens";
+import { logging, runtimes } from "bytehappens";
 
 import { MongoClient, Db, DbAddUserOptions } from "mongodb";
-import { mongodb } from "bytehappens-storage-mongodb";
+import { storageMongoDb } from "bytehappens-storage-mongodb";
 
 async function AddNewUserAsync(
-  mongoDbConfiguration: mongodb.IMongoDbConnection,
-  mongoDbUser: mongodb.IMongoDbUser,
-  newMongoDbUser: mongodb.IMongoDbUser
+  mongoDbConfiguration: storageMongoDb.core.IMongoDbConnection,
+  mongoDbUser: storageMongoDb.core.IMongoDbUser,
+  newMongoDbUser: storageMongoDb.core.IMongoDbUser
 ): Promise<boolean> {
-  let client: MongoClient = await mongodb.CreateMongoDbClientAsync(mongoDbConfiguration, mongoDbUser);
+  let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(mongoDbConfiguration, mongoDbUser);
 
   let databaseName: string = newMongoDbUser.databaseName;
   let options: DbAddUserOptions = {
@@ -30,15 +30,15 @@ export class CreateMongoDbLogUserTask<
   TLog extends logging.ILog,
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
-> extends task.BaseTask<TLog, TLogger, TLoggerFactory> {
-  private readonly _mongoDbConnection: mongodb.IMongoDbConnection;
-  private readonly _mongoDbUser: mongodb.IMongoDbUser;
-  private readonly _mongoDbNewUser: mongodb.IMongoDbUser;
+> extends runtimes.tasks.BaseTask<TLog, TLogger, TLoggerFactory> {
+  private readonly _mongoDbConnection: storageMongoDb.core.IMongoDbConnection;
+  private readonly _mongoDbUser: storageMongoDb.core.IMongoDbUser;
+  private readonly _mongoDbNewUser: storageMongoDb.core.IMongoDbUser;
 
   public constructor(
-    mongoDbConnection: mongodb.IMongoDbConnection,
-    mongoDbUser: mongodb.IMongoDbUser,
-    newMongoDbUser: mongodb.IMongoDbUser,
+    mongoDbConnection: storageMongoDb.core.IMongoDbConnection,
+    mongoDbUser: storageMongoDb.core.IMongoDbUser,
+    newMongoDbUser: storageMongoDb.core.IMongoDbUser,
     taskName: string,
     loggerFactory: TLoggerFactory
   ) {
