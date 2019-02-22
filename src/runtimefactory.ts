@@ -1,10 +1,7 @@
 import { logging, runtimes } from "bytehappens";
-import { storageMongoDb } from "bytehappens-storage-mongodb";
 import { loggingWinston } from "bytehappens-logging-winston";
 
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
-
-import { CreateMongoDbLogUserTask } from "./tasks/createmongodbusertask";
 
 import { DefaultRoute } from "./routes/defaultroute";
 import { StatusRoute } from "./routes/statusroute";
@@ -106,41 +103,6 @@ export class RuntimeFactory<
     );
   }
 
-  private GetCreateMongoDbLogUserTask(setupLoggerFactory: TSetupLoggerFactory): runtimes.tasks.ITask {
-    let response: runtimes.tasks.ITask;
-
-    let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
-    if (useMongoDb) {
-      let host: string = process.env.LOGGING_MONGODB_HOST;
-      let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
-      let connection: storageMongoDb.core.IMongoDbConnection = {
-        host: host,
-        port: port
-      };
-
-      let username: string = process.env.LOGGING_MONGODB_ADMIN_USERNAME;
-      let password: string = process.env.LOGGING_MONGODB_ADMIN_PASSWORD;
-      let user: storageMongoDb.core.IMongoDbUser = {
-        username: username,
-        password: password
-      };
-
-      let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
-      let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
-      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-      let newUser: storageMongoDb.core.IMongoDbUser = {
-        username: newUsername,
-        password: newPassword,
-        databaseName: databaseName
-      };
-
-      response = new CreateMongoDbLogUserTask(connection, user, newUser, "CreateMongoDbLogUser", setupLoggerFactory);
-      response = new runtimes.tasks.RetriableTask(response, 2, 10000, "RetryCreateMongoDbLogUser", setupLoggerFactory);
-    }
-
-    return response;
-  }
-
   private GetExpressApplicationTask(
     loggerFactory: TLoggerFactory,
     startupLoggerFactory: loggingWinston.console.WinstonConsoleLoggerFactory<TLog>
@@ -170,7 +132,7 @@ export class RuntimeFactory<
       `Start${applicationName}`,
       startupLoggerFactory
     );
-    
+
     return startApplicationTask;
   }
 
@@ -187,22 +149,7 @@ export class RuntimeFactory<
 
     let loggerFactory: TLoggerFactory = await this.GetLoggerFactoryAsync(setupLoggerFactory);
 
-    let createMongoDbLogUserTask: runtimes.tasks.ITask = this.GetCreateMongoDbLogUserTask(setupLoggerFactory);
-    let serverTask: runtimes.tasks.ITask = this.GetExpressApplicationTask(loggerFactory, setupLoggerFactory);
-
-    if (createMongoDbLogUserTask) {
-      //  EBU: Start Server regardless of success
-      response = new runtimes.tasks.TaskChain(
-        createMongoDbLogUserTask,
-        serverTask,
-        serverTask,
-        "SetupTaskChain",
-        setupLoggerFactory
-      );
-    } else {
-      response = serverTask;
-    }
-
+    response = this.GetExpressApplicationTask(loggerFactory, setupLoggerFactory);
     return response;
   }
 }
