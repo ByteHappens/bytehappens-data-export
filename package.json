@@ -21,8 +21,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "bytehappens": "0.0.5",
-    "bytehappens-logging-winston": "0.0.5",
+    "bytehappens-logging-winston": "0.0.7",
     "express": "^4.16.3",
     "json2csv": "^4.3.3",
     "module-alias": "^2.1.0"
