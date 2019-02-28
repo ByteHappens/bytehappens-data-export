@@ -1,4 +1,6 @@
+import { MongoClient } from "mongodb";
 import { logging, runtimes } from "bytehappens";
+import { storageMongoDb } from "bytehappens-storage-mongodb";
 import { loggingWinston } from "bytehappens-logging-winston";
 
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
@@ -11,7 +13,7 @@ export class RuntimeFactory<
   TLog extends logging.ILog,
   TLogger extends loggingWinston.core.WinstonLogger<TLog>,
   TLoggerFactory extends loggingWinston.core.WinstonLoggerFactory<TLog, TLogger>,
-  TSetupLoggerFactory extends loggingWinston.console.WinstonConsoleLoggerFactory<TLog>
+  TstartupLoggerFactory extends loggingWinston.console.WinstonConsoleLoggerFactory<TLog>
 > implements runtimes.core.IRuntimeFactory<runtimes.tasks.ITask> {
   private LoadWinstonConsoleTransportConfiguration(): loggingWinston.console.IWinstonConsoleTransportConfiguration {
     let level: string = process.env.LOGGING_CONSOLE_LEVEL;
@@ -68,14 +70,14 @@ export class RuntimeFactory<
   private AddTransportConfiguration(
     current: loggingWinston.core.IWinstonTransportConfiguration,
     existing: loggingWinston.core.IWinstonTransportConfiguration[],
-    setupLogger: loggingWinston.core.WinstonLogger<TLog>
+    startupLogger: loggingWinston.core.WinstonLogger<TLog>
   ) {
     if (current) {
       try {
         current.Validate();
         existing.push(current);
       } catch (error) {
-        setupLogger.Log(<TLog>{
+        startupLogger.Log(<TLog>{
           level: "error",
           message: "Failed to load add transport configuration",
           meta: { error }
@@ -85,22 +87,67 @@ export class RuntimeFactory<
     }
   }
 
-  private async GetLoggerFactoryAsync(setupLoggerFactory: TSetupLoggerFactory): Promise<TLoggerFactory> {
-    let setupLogger: loggingWinston.core.WinstonLogger<TLog> = await setupLoggerFactory.CreateLoggerAsync();
+  private async GetLoggerFactoryAsync(startupLoggerFactory: TstartupLoggerFactory): Promise<TLoggerFactory> {
+    let startupLogger: loggingWinston.core.WinstonLogger<TLog> = await startupLoggerFactory.CreateLoggerAsync();
     let transportConfigurations: loggingWinston.core.IWinstonTransportConfiguration[] = [];
 
     let consoleTransportConfiguration: loggingWinston.console.IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
-    this.AddTransportConfiguration(consoleTransportConfiguration, transportConfigurations, setupLogger);
+    this.AddTransportConfiguration(consoleTransportConfiguration, transportConfigurations, startupLogger);
 
     let telegramTransportConfiguration: loggingWinston.telegram.IWinstonTelegramTransportConfiguration = this.LoadWinstonTelegramTransportConfiguration();
-    this.AddTransportConfiguration(telegramTransportConfiguration, transportConfigurations, setupLogger);
+    this.AddTransportConfiguration(telegramTransportConfiguration, transportConfigurations, startupLogger);
 
     let mongoDbTransportConfiguration: loggingWinston.mongodb.IWinstonMongoDbTransportConfiguration = this.LoadWinstonMongoDbTransportConfiguration();
-    this.AddTransportConfiguration(mongoDbTransportConfiguration, transportConfigurations, setupLogger);
+    this.AddTransportConfiguration(mongoDbTransportConfiguration, transportConfigurations, startupLogger);
 
     return <TLoggerFactory>(
       new loggingWinston.core.WinstonLoggerFactory(consoleTransportConfiguration.level, transportConfigurations)
     );
+  }
+
+  private GetCheckMongoDbAvailabilityTask(
+    startupLoggerFactory: loggingWinston.console.WinstonConsoleLoggerFactory<TLog>
+  ): runtimes.tasks.ITask {
+    let response: runtimes.tasks.ITask;
+
+    let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
+    if (useMongoDb) {
+      let host: string = process.env.LOGGING_MONGODB_HOST;
+      let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
+      let connection: storageMongoDb.core.IMongoDbConnection = {
+        host: host,
+        port: port
+      };
+
+      let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
+      let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
+      let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
+      let newUser: storageMongoDb.core.IMongoDbUser = {
+        username: newUsername,
+        password: newPassword,
+        databaseName: databaseName
+      };
+
+      let checkMongoDbAvailabilityTask: runtimes.tasks.ITask = new runtimes.tasks.LambdaTask(
+        async () => {
+          //  SCK: If we can create client, then it is available
+          let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(connection, newUser);
+          return true;
+        },
+        "CheckMongoDbAvailabilityTask",
+        startupLoggerFactory
+      );
+
+      response = new runtimes.tasks.RetriableTask(
+        checkMongoDbAvailabilityTask,
+        5,
+        5000,
+        "RetryCheckMongoDbAvailabilityTask",
+        startupLoggerFactory
+      );
+    }
+
+    return response;
   }
 
   private GetExpressApplicationTask(
@@ -140,16 +187,30 @@ export class RuntimeFactory<
     let response: runtimes.tasks.ITask;
 
     let consoleTransportConfiguration: loggingWinston.console.IWinstonConsoleTransportConfiguration = this.LoadWinstonConsoleTransportConfiguration();
-    let setupLoggerFactory: TSetupLoggerFactory = <TSetupLoggerFactory>(
+    let startupLoggerFactory: TstartupLoggerFactory = <TstartupLoggerFactory>(
       new loggingWinston.console.WinstonConsoleLoggerFactory<TLog>(
         consoleTransportConfiguration.level,
         consoleTransportConfiguration
       )
     );
 
-    let loggerFactory: TLoggerFactory = await this.GetLoggerFactoryAsync(setupLoggerFactory);
+    let loggerFactory: TLoggerFactory = await this.GetLoggerFactoryAsync(startupLoggerFactory);
 
-    response = this.GetExpressApplicationTask(loggerFactory, setupLoggerFactory);
+    let checkMongoDbAvailabilityTask: runtimes.tasks.ITask = this.GetCheckMongoDbAvailabilityTask(startupLoggerFactory);
+    let applicationTask: runtimes.tasks.ITask = this.GetExpressApplicationTask(loggerFactory, startupLoggerFactory);
+
+    if (checkMongoDbAvailabilityTask) {
+      response = new runtimes.tasks.TaskChain(
+        checkMongoDbAvailabilityTask,
+        applicationTask,
+        applicationTask,
+        "TaskChain",
+        startupLoggerFactory
+      );
+    } else {
+      response = applicationTask;
+    }
+
     return response;
   }
 }
