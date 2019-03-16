@@ -15,9 +15,10 @@ export abstract class BaseSimpleGetExpressRoute<
   }
 
   public GetRouter(): Router {
-    this._logger.Log(<TLog>{ level: "verbose", message: `Creating Router on ${this._path}` });
-
     let router: Router = Router();
+
+    this._logger.Log(<TLog>{ level: "verbose", message: `[Route] Registering GET ${this._path}` });
+
     router.get(this._path, (request, response) => {
       this.ProcessRequest(request, response);
     });

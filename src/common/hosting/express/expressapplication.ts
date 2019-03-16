@@ -57,11 +57,6 @@ export class ExpressApplication<
   }
 
   protected async StartInternalAsync(): Promise<void> {
-    this._logger.Log(<TLog>{
-      level: "verbose",
-      message: `Listening on port ${this._port}`
-    });
-
     if (this._routes !== undefined) {
       await Promise.all(this._routes.map(async (route: IExpressRoute) => await this.RegisterAsync(route)));
     }
@@ -82,6 +77,11 @@ export class ExpressApplication<
         this.DefaultProcessError(error, request, response, next);
       }
     );
+
+    this._logger.Log(<TLog>{
+      level: "verbose",
+      message: `[Express] Listening on port ${this._port}`
+    });
 
     this._expressServer = this._expressApplication.listen(this._port);
   }
