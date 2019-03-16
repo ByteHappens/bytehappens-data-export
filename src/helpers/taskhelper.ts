@@ -12,45 +12,22 @@ import { DataExportRoute } from "../routes/dataexportroute";
 export function GetCheckMongoDbAvailabilityTask<
   TLog extends logging.ILog,
   TStartupLoggerFactory extends loggingWinston.console.WinstonConsoleLoggerFactory<TLog>
->(startupLoggerFactory: TStartupLoggerFactory): runtimes.tasks.ITask {
-  let response: runtimes.tasks.ITask;
+>(
+  startupLoggerFactory: TStartupLoggerFactory,
+  connection: storageMongoDb.core.IMongoDbConnection,
+  user: storageMongoDb.core.IMongoDbUser
+): runtimes.tasks.ITask {
+  let response: runtimes.tasks.ITask = new runtimes.tasks.LambdaTask(
+    async () => {
+      //  SCK: If we can create client, then it is available
+      let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(connection, user);
+      return true;
+    },
+    "CheckMongoDbAvailabilityTask",
+    startupLoggerFactory
+  );
 
-  let useMongoDb: boolean = process.env.LOGGING_MONGODB_USE === "true";
-  if (useMongoDb) {
-    let host: string = process.env.LOGGING_MONGODB_HOST;
-    let port: number = parseInt(process.env.LOGGING_MONGODB_PORT);
-    let connection: storageMongoDb.core.IMongoDbConnection = {
-      host: host,
-      port: port
-    };
-
-    let newUsername: string = process.env.LOGGING_MONGODB_USERNAME;
-    let newPassword: string = process.env.LOGGING_MONGODB_PASSWORD;
-    let databaseName: string = process.env.LOGGING_MONGODB_DATABASE;
-    let newUser: storageMongoDb.core.IMongoDbUser = {
-      username: newUsername,
-      password: newPassword,
-      databaseName: databaseName
-    };
-
-    let checkMongoDbAvailabilityTask: runtimes.tasks.ITask = new runtimes.tasks.LambdaTask(
-      async () => {
-        //  SCK: If we can create client, then it is available
-        let client: MongoClient = await storageMongoDb.core.CreateMongoDbClientAsync(connection, newUser);
-        return true;
-      },
-      "CheckMongoDbAvailabilityTask",
-      startupLoggerFactory
-    );
-
-    response = new runtimes.tasks.RetriableTask(
-      checkMongoDbAvailabilityTask,
-      5,
-      5000,
-      "RetryCheckMongoDbAvailabilityTask",
-      startupLoggerFactory
-    );
-  }
+  response = new runtimes.tasks.RetriableTask(response, 5, 5000, "RetryCheckMongoDbAvailabilityTask", startupLoggerFactory);
 
   return response;
 }
