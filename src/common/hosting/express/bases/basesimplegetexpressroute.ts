@@ -8,10 +8,10 @@ export abstract class BaseSimpleGetExpressRoute<
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > extends BaseExpressRoute<TLog, TLogger, TLoggerFactory> {
-  protected abstract ProcessRequestInternal(request: Request, response: Response);
+  protected abstract ProcessRequestInternalAsync(request: Request, response: Response): Promise<void>;
 
-  public ProcessRequest(request: Request, response: Response): void {
-    this.ProcessRequestInternal(request, response);
+  public async ProcessRequestAsync(request: Request, response: Response): Promise<void> {
+    await this.ProcessRequestInternalAsync(request, response);
   }
 
   public GetRouter(): Router {
@@ -19,8 +19,12 @@ export abstract class BaseSimpleGetExpressRoute<
 
     this._logger.Log(<TLog>{ level: "verbose", message: `[Route] Registering GET ${this._path}` });
 
-    router.get(this._path, (request, response) => {
-      this.ProcessRequest(request, response);
+    router.get(this._path, async (request, response, next) => {
+      try {
+        await this.ProcessRequestAsync(request, response);
+      } catch (err) {
+        next(err);
+      }
     });
 
     return router;

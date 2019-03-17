@@ -8,7 +8,7 @@ export class StatusRoute<
   TLogger extends logging.ILogger<TLog>,
   TLoggerFactory extends logging.ILoggerFactory<TLog, TLogger>
 > extends BaseSimpleGetExpressRoute<TLog, TLogger, TLoggerFactory> {
-  protected ProcessRequestInternal(request: Request, response: Response): void {
+  protected async ProcessRequestInternalAsync(request: Request, response: Response): Promise<void> {
     response.status(204);
     response.send();
   }

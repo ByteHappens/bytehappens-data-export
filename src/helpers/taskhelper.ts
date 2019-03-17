@@ -5,6 +5,8 @@ import { loggingWinston } from "bytehappens-logging-winston";
 
 import { ExpressApplication, IExpressRoute } from "common/hosting/express";
 
+import { StaticFieldProvider, StaticEntryProvider } from "../data";
+
 import { DefaultRoute } from "../routes/defaultroute";
 import { StatusRoute } from "../routes/statusroute";
 import { DataExportRoute } from "../routes/dataexportroute";
@@ -48,7 +50,7 @@ export function GetExpressApplicationTask<
   let routes: IExpressRoute[] = [
     new DefaultRoute(defaultPath, loggerFactory),
     new StatusRoute(statusPath, loggerFactory),
-    new DataExportRoute("/products.csv", loggerFactory)
+    new DataExportRoute(new StaticFieldProvider(), new StaticEntryProvider(), "/products.csv", loggerFactory)
   ];
 
   let application: runtimes.applications.IApplication = new ExpressApplication(
