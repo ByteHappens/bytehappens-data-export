@@ -51,6 +51,11 @@ export class DataExportRoute<
       }
     }
 
+    let file: TFile;
+    let fields: TField[];
+    let entries: TEntry[];
+
+    let format: string;
     if (response.statusCode === 200) {
       this._logger.Log(<TLog>{
         level: "verbose",
@@ -58,26 +63,34 @@ export class DataExportRoute<
         meta: { path: request.path, filename: request.params.filename, ext: request.params.ext, mimeType: request.accepts() }
       });
 
-      let file: TFile = await this._fileProvider.LoadAsync(request.params.filename);
-      this._logger.Log(<TLog>{ level: "verbose", message: `[Export] Exporting ${file.Name}` });
+      file = await this._fileProvider.LoadAsync(request.params.filename);
+      this._logger.Log(<TLog>{ level: "verbose", message: "[Export] Found file" });
 
-      let fields: TField[] = await this._fieldProvider.GetFieldsAsync(file.Name);
-      this._logger.Log(<TLog>{ level: "verbose", message: `[Export] Found ${fields.length} fields` });
+      fields = await this._fieldProvider.GetFieldsAsync(file.Name);
+      this._logger.Log(<TLog>{ level: "verbose", message: "[Export] Found fields", meta: { fieldCount: fields.length } });
 
-      let entries: TEntry[] = await this._entryProvider.GetEntriesAsync(file.Name);
-      this._logger.Log(<TLog>{ level: "verbose", message: `[Export] Found ${entries.length} entries` });
+      entries = await this._entryProvider.GetEntriesAsync(file.Name);
+      this._logger.Log(<TLog>{ level: "verbose", message: "[Export] Found entries", meta: { entryCount: entries.length } });
 
-      let content: string;
       response.format({
         "application/json": () => {
-          content = file.SerializeContent(fields, entries, "json");
+          format = "json";
         },
         "text/csv": () => {
-          content = file.SerializeContent(fields, entries, "csv");
+          format = "csv";
         },
         default: function() {
           response.status(406).send("Not Acceptable");
         }
+      });
+    }
+
+    if (response.statusCode === 200) {
+      let content: string = file.SerializeContent(fields, entries, format);
+
+      this._logger.Log(<TLog>{
+        level: "info",
+        message: `[Export] Exporting ${entries.length} entries for filename ${file.Name} in ${format.toUpperCase()}`
       });
 
       response.send(content);
