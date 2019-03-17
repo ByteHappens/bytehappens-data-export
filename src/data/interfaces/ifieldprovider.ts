@@ -1,5 +1,5 @@
 import { IField } from "./ifield";
 
 export interface IFieldProvider<TField extends IField> {
-  GetFieldsAsync(): Promise<TField[]>;
+  GetFieldsAsync(filename: string): Promise<TField[]>;
 }

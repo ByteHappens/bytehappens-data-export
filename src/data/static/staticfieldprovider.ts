@@ -2,7 +2,11 @@ import { IFieldProvider } from "../interfaces/ifieldprovider";
 import { StaticField } from "./staticfield";
 
 export class StaticFieldProvider implements IFieldProvider<StaticField> {
-  public async GetFieldsAsync(): Promise<StaticField[]> {
+  public async GetFieldsAsync(filename: string): Promise<StaticField[]> {
+    if (filename !== "products") {
+      throw new Error(`Unknown fields for ${filename} requested`);
+    }
+
     return [
       new StaticField("Sku"),
       new StaticField("Title"),

@@ -4,7 +4,11 @@ import { StaticField } from "./staticfield";
 import { StaticEntry } from "./staticentry";
 
 export class StaticEntryProvider implements IEntryProvider<StaticField, StaticEntry> {
-  public async GetEntriesAsync(): Promise<StaticEntry[]> {
+  public async GetEntriesAsync(filename: string): Promise<StaticEntry[]> {
+    if (filename !== "products") {
+      throw new Error(`Unknown entries for ${filename} requested`);
+    }
+
     return [
       new StaticEntry("EBU_001", {
         Sku: "EBU_001",

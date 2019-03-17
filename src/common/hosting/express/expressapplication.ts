@@ -54,6 +54,8 @@ export class ExpressApplication<
 
     response.status(500);
     response.send("Something broke!");
+
+    next();
   }
 
   protected async StartInternalAsync(): Promise<void> {

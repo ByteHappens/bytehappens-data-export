@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, NextFunction, Router } from "express";
 import { logging } from "bytehappens";
 
 import { BaseExpressRoute } from "./baseexpressroute";
@@ -19,7 +19,7 @@ export abstract class BaseSimpleGetExpressRoute<
 
     this._logger.Log(<TLog>{ level: "verbose", message: `[Route] Registering GET ${this._path}` });
 
-    router.get(this._path, async (request, response, next) => {
+    router.get(this._path, async (request: Request, response: Response, next: NextFunction) => {
       try {
         await this.ProcessRequestAsync(request, response);
       } catch (err) {
