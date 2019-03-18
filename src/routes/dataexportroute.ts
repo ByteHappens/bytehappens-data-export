@@ -53,9 +53,7 @@ export class DataExportRoute<
           meta: { mimeType: mimeTypeFromExt }
         });
 
-        console.log(request.accepts());
         request.headers["accept"] = mimeTypeFromExt;
-        console.log(request.accepts());
         response.contentType(mimeTypeFromExt);
       }
     }
