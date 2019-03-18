@@ -21,7 +21,9 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "bytehappens-logging-winston": "0.0.7",
+    "bytehappens": "0.0.8",
+    "bytehappens-logging-winston": "0.0.8",
+    "bytehappens-storage-mongodb": "0.0.8",
     "express": "^4.16.3",
     "json2csv": "^4.3.3",
     "mime": "^2.4.0",
