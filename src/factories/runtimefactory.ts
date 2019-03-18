@@ -36,7 +36,13 @@ export class RuntimeFactory<
         databaseName: loggingDatabaseName
       };
 
-      checkMongoDbAvailabilityTask = TaskHelper.GetCheckMongoDbAvailabilityTask(startupLoggerFactory, connection, loggingUser);
+      checkMongoDbAvailabilityTask = TaskHelper.GetAwaitMongoDbAvailabilityTask(
+        connection,
+        loggingUser,
+        5,
+        5000,
+        startupLoggerFactory
+      );
     }
 
     let applicationTask: runtimes.tasks.ITask = TaskHelper.GetExpressApplicationTask(
