@@ -1,4 +1,3 @@
-import { MongoClient } from "mongodb";
 import { logging, runtimes } from "bytehappens";
 import { storageMongoDb } from "bytehappens-storage-mongodb";
 import { loggingWinston } from "bytehappens-logging-winston";
