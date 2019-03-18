@@ -54,14 +54,14 @@ export function GetExpressApplicationTask<
       new StaticFileProvider(),
       new StaticFieldProvider(),
       new StaticEntryProvider(),
-      "/:filename.:ext",
+      "/:filename([^.]+).:ext(json|csv)",
       loggerFactory
     ),
     new DataExportRoute(
       new StaticFileProvider(),
       new StaticFieldProvider(),
       new StaticEntryProvider(),
-      "/:filename",
+      "/:filename([^.]+)",
       loggerFactory
     )
   ];

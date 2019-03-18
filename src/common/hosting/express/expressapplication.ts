@@ -48,12 +48,12 @@ export class ExpressApplication<
   ): void {
     this._logger.Log(<TLog>{
       level: "error",
-      message: "Something broke!",
+      message: "Something went wrong !",
       meta: { error }
     });
 
     response.status(500);
-    response.send("Something broke!");
+    response.send(error && error.message ? error.message : "Something went wrong !");
 
     next();
   }

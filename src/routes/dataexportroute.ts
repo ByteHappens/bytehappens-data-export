@@ -37,17 +37,26 @@ export class DataExportRoute<
 
   protected async ProcessRequestInternalAsync(request: Request, response: Response): Promise<void> {
     if (request.params.ext) {
-      var extensionMimeType = mime.getType(request.params.ext);
+      var mimeTypeFromExt = mime.getType(request.params.ext);
 
-      if (
-        request.accepts().filter((mimeType: string, idx: number) => mimeType === extensionMimeType || mimeType === "*/*")
-          .length === 0
-      ) {
-        let message: string = `Mime Type for ${request.params.ext} (${extensionMimeType}) not found in Accepted Mime Types`;
+      if (!request.accepts(mimeTypeFromExt)) {
+        let message: string = `Mime Type for ${request.params.ext} (${mimeTypeFromExt}) not found in Accepted Mime Types`;
+
+        this._logger.Log(<TLog>{ level: "error", message: message });
+
         response.status(400);
         response.send(message);
       } else {
-        request.accepts(extensionMimeType);
+        this._logger.Log(<TLog>{
+          level: "verbose",
+          message: "Using explicit content type",
+          meta: { mimeType: mimeTypeFromExt }
+        });
+
+        console.log(request.accepts());
+        request.headers["accept"] = mimeTypeFromExt;
+        console.log(request.accepts());
+        response.contentType(mimeTypeFromExt);
       }
     }
 
